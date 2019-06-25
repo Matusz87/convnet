@@ -9,11 +9,16 @@ class TestTensor
 public:
 	TestTensor();
 	bool TestImageSplit();
-	bool TestTensorFromMat();
+	bool TestTensorFromMatIntSuccess();
+	bool TestTensorFromMatIntFail();
+	bool TestTensorFromMatSuccess();
+	bool TestTensorFromMatFail();
 	~TestTensor();
 
 private:
 	bool CompareMatToTensor(std::vector<cv::Mat> bgr, 
-							convnet_core::Tensor3D<float> tensor);
+							convnet_core::Tensor3D<double> tensor);
+	bool CompareMatIntToTensor(cv::Mat img,
+							   convnet_core::Tensor3D<double> tensor);
 };
 

@@ -15,12 +15,16 @@ namespace convnet_core {
 	class Tensor3D
 	{
 	public:
+		Tensor3D() { }; 
+		Tensor3D(Shape shape);
 		Tensor3D(int height, int width, int depth);
 		Tensor3D(const Tensor3D& other);
 		Tensor3D(const cv::Mat& image);
-		Tensor3D<T> operator+(Tensor3D<T>& other);
-		Tensor3D<T> operator-(Tensor3D<T>& other);
-
+		Tensor3D<T> operator+(const Tensor3D<T>& other);
+		Tensor3D<T> operator-(const Tensor3D<T>& other);
+		Tensor3D<T> operator/(T scalar);
+		Tensor3D<T> operator=(const Tensor3D<T>& other);
+		
 		T& operator()(int _x, int _y, int _z);
 		T& get(int _x, int _y, int _z);
 
@@ -30,7 +34,7 @@ namespace convnet_core {
 		~Tensor3D();
 
 	private:
-		T * data;
+		T* data;
 		Shape shape;
 
 		void AppendChannel(const cv::Mat& mat, int channel);
@@ -38,7 +42,12 @@ namespace convnet_core {
 	};
 
 	template<typename T>
-	Tensor3D<T>::Tensor3D(int width, int height, int depth) {
+	Tensor3D<T>::Tensor3D(Shape shape) {
+		SetParams(shape.height, shape.width, shape.depth);
+	}
+
+	template<typename T>
+	Tensor3D<T>::Tensor3D(int height, int width, int depth) {
 		SetParams(height, width, depth);
 	}
 
@@ -70,7 +79,7 @@ namespace convnet_core {
 	}
 
 	template<typename T>
-	inline Tensor3D<T> Tensor3D<T>::operator+(Tensor3D<T>& other) {
+	inline Tensor3D<T> Tensor3D<T>::operator+(const Tensor3D<T>& other) {
 		Tensor3D<T> clone(*this);
 		for (int i = 0; i < other.shape.height * other.shape.width * other.shape.depth; i++)
 			clone.data[i] += other.data[i];
@@ -79,12 +88,34 @@ namespace convnet_core {
 	}
 
 	template<typename T>
-	inline Tensor3D<T> Tensor3D<T>::operator-(Tensor3D<T>& other) {
+	inline Tensor3D<T> Tensor3D<T>::operator-(const Tensor3D<T>& other) {
 		Tensor3D<T> clone(*this);
 		for (int i = 0; i < other.shape.height * other.shape.width * other.shape.depth; i++)
 			clone.data[i] -= other.data[i];
 
 		return clone;
+	}
+
+	template<typename T>
+	inline Tensor3D<T> Tensor3D<T>::operator/(T scalar) {
+		Tensor3D<T> clone(*this);
+		for (int i = 0; i < other.shape.height * other.shape.width * other.shape.depth; i++)
+			clone.data[i] = this.data[i] / scalar;
+
+		return clone;
+	}
+
+	template<typename T>
+	inline Tensor3D<T> Tensor3D<T>::operator=(const Tensor3D<T>& other) {
+		data = new T[other.shape.width *other.shape.height *other.shape.depth];
+		memcpy(
+			this->data,
+			other.data,
+			other.shape.width *other.shape.height *other.shape.depth * sizeof(T)
+		);
+		this->shape = other.shape;
+
+		return *this;
 	}
 	
 	/*template<typename T>
@@ -117,17 +148,17 @@ namespace convnet_core {
 	}
 
 	template<typename T>
-	inline Shape Tensor3D<T>::GetShape()
-	{
+	inline Shape Tensor3D<T>::GetShape() {
 		return this->shape;
 	}
 
 	template<typename T>
 	Tensor3D<T>::~Tensor3D() {
-		delete[] data;
+		if (data != NULL)
+			delete[] data;
 	}
 
-	// Append the color-channels of an image to the flattened data array.
+	// Append the color-channels of an image to the unrolled data array.
 	template<typename T>
 	void Tensor3D<T>::AppendChannel(const cv::Mat& mat, int channel) {
 		assert(channel >= 0);
@@ -136,7 +167,8 @@ namespace convnet_core {
 
 		for (int i = 0; i < mat.rows; ++i) {
 			for (int j = 0; j < mat.cols; ++j) {
-				get(i, j, channel) = (int)mat.at<uchar>(i, j);
+				// Normalize pixel value between (0,1).
+				get(i, j, channel) = (double)mat.at<uchar>(i, j) / 255.0;
 			}
 		}
 	}
@@ -149,7 +181,7 @@ namespace convnet_core {
 		shape.depth = depth;
 	}
 
-	static void PrintTensor(Tensor3D<float>& tensor) {
+	static void PrintTensor(Tensor3D<double>& tensor) {
 		int width = tensor.GetShape().width;
 		int height = tensor.GetShape().height;
 		int depth = tensor.GetShape().depth;
@@ -158,7 +190,7 @@ namespace convnet_core {
 			printf("[Dim%d]\n", z);
 			for (int x = 0; x < height; x++) {
 				for (int y = 0; y < width; y++) {
-					printf("%.2f ", (float)tensor.get(x, y, z));
+					printf("%.2f ", (double)tensor.get(x, y, z));
 				}
 				printf("\n");
 			}
@@ -178,5 +210,10 @@ namespace convnet_core {
 				for (int k = 0; k < z; k++)
 					t(i, j, k) = data[k][j][i];
 		return t;
+	}
+
+	static void PrintShape(Shape shape) {
+		std::cout << "(" << shape.height << +", " << shape.width 
+				  << ", " << shape.depth << ")" << std::endl;
 	}
 }
