@@ -20,18 +20,6 @@ bool TestTensor::TestTensorFromMatSuccess() {
 	std::vector<cv::Mat> bgr(3);
 	cv::split(img, bgr);
 
-	//for (int ch = 0; ch < bgr.size(); ++ch) {
-	//	std::cout << "Channel: " << ch << std::endl;
-	//	std::cout << "Image size: " << bgr[ch].rows << " " << bgr[ch].cols << " " << bgr[ch].channels() << std::endl;
-	//	for (int i = 0; i < bgr[ch].rows; ++i) {
-	//		for (int j = 0; j < bgr[ch].cols; ++j)
-	//			std::cout << (double)bgr[ch].at<uchar>(i, j) << " ";
-
-	//		std::cout << std::endl;
-	//	}
-	//	std::cout << std::endl;
-	//}
-
 	convnet_core::Tensor3D<double> tensor(img);
 	//PrintTensor(tensor);
 
@@ -56,8 +44,7 @@ bool TestTensor::TestTensorFromMatFail() {
 	cv::split(img, bgr);
 
 	convnet_core::Tensor3D<double> tensor(img2);
-	//PrintTensor(tensor);
-
+	
 	assert(CompareMatToTensor(bgr, tensor));
 
 	return true;
@@ -120,9 +107,7 @@ bool TestTensor::TestTensorFromMatIntFail()
 
 TestTensor::
 
-TestTensor::~TestTensor()
-{
-}
+TestTensor::~TestTensor() { }
 
 bool TestTensor::CompareMatToTensor(std::vector<cv::Mat> bgr, 
 									convnet_core::Tensor3D<double> tensor)
@@ -162,34 +147,5 @@ bool TestTensor::CompareMatIntToTensor(cv::Mat img, convnet_core::Tensor3D<doubl
 	}
 	std::cout << "Mat<int> and Tensor3D are equal." << std::endl << std::endl;
 
-	return true;
-}
-
-bool TestTensor::TestImageSplit() {
-	std::string imageName("../../../datasets/traffic_signs/1_0000.bmp");
-	cv::Mat image;
-	image = cv::imread(imageName.c_str(), cv::IMREAD_COLOR);
-	if (image.empty()) {
-		std::cout << "Could not open or find the image" << std::endl;
-		return -1;
-	}
-
-	cv::namedWindow("Display window", cv::WINDOW_KEEPRATIO); // Create a window for display.
-	imshow("Display window", image);                // Show our image inside it.
-
-	std::vector<cv::Mat> bgr(3);   //destination array
-	cv::split(image, bgr);//split source  
-
-	std::cout << bgr[0].size() << " " << bgr[1].size() << bgr[2].size() << std::endl;
-
-	imshow("blue.png", bgr[0]); //blue channel
-	imshow("green.png", bgr[1]); //green channel
-	imshow("red.png", bgr[2]); //red channel
-
-	cv::Mat merged;
-	cv::merge(bgr, merged);
-	imshow("merged", merged); //red channel
-
-	cv::waitKey(0); // Wait for a keystroke in the window
 	return true;
 }

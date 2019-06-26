@@ -4,25 +4,14 @@
 namespace layer {
 	Layer::Layer() { }
 
-	Layer::Layer(convnet_core::Shape shape, std::string name) {
-		std::cout << "Layer shape constructor" << std::endl;
+	Layer::Layer(convnet_core::Triplet shape, std::string name) {
 		this->name = name;
-		std::cout << "Layer name: " << this->name << std::endl;
-
 		input = Tensor3D<double>(shape.height, shape.width, shape.depth);
-		std::cout << "Input shape: ";
-		convnet_core::PrintShape(GetInputShape());
 	}
 
-	Layer::Layer(convnet_core::Tensor3D<double>& prevAct, std::string name) : input(prevAct) {
-		std::cout << "Layer prevAct constructor" << std::endl;
+	Layer::Layer(convnet_core::Tensor3D<double>& prev_activation, std::string name) {
 		this->name = name;
-		std::cout << "Layer name: " << this->name << std::endl;
-		
-		input = Tensor3D<double>(prevAct);
-
-		std::cout << "Input shape: ";
-		convnet_core::PrintShape(GetInputShape());
+		input = Tensor3D<double>(prev_activation);
 	}
 
 
@@ -34,15 +23,15 @@ namespace layer {
 		return output;
 	}
 	convnet_core::Tensor3D<double> Layer::GetGrads() {
-		return dInput;
+		return grad_input;
 	}
-	convnet_core::Shape Layer::GetInputShape() {
+	convnet_core::Triplet Layer::GetInputShape() {
 		return input.GetShape();
 	}
-	convnet_core::Shape Layer::GetOutputShape() {
+	convnet_core::Triplet Layer::GetOutputShape() {
 		return output.GetShape();
 	}
-	convnet_core::Shape Layer::GetGradsShape() {
-		return dInput.GetShape();
+	convnet_core::Triplet Layer::GetGradsShape() {
+		return grad_input.GetShape();
 	}
 }

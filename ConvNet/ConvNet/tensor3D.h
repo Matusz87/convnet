@@ -7,7 +7,7 @@
 #include <iostream>
 
 namespace convnet_core {
-	struct Shape {
+	struct Triplet {
 		int height, width, depth;
 	};
 
@@ -16,7 +16,7 @@ namespace convnet_core {
 	{
 	public:
 		Tensor3D() { }; 
-		Tensor3D(Shape shape);
+		Tensor3D(Triplet shape);
 		Tensor3D(int height, int width, int depth);
 		Tensor3D(const Tensor3D& other);
 		Tensor3D(const cv::Mat& image);
@@ -25,24 +25,24 @@ namespace convnet_core {
 		Tensor3D<T> operator/(T scalar);
 		Tensor3D<T> operator=(const Tensor3D<T>& other);
 		
-		T& operator()(int _x, int _y, int _z);
-		T& get(int _x, int _y, int _z);
+		T& operator()(int row, int col, int channel);
+		T& get(int row, int col, int channel);
 
-		Shape GetShape();
+		Triplet GetShape();
 		//void CopyFrom(std::vector<std::vector<std::vector<T>>> data);
 
 		~Tensor3D();
 
 	private:
 		T* data;
-		Shape shape;
+		Triplet shape;
 
 		void AppendChannel(const cv::Mat& mat, int channel);
 		void SetParams(int height, int width, int depth);
 	};
 
 	template<typename T>
-	Tensor3D<T>::Tensor3D(Shape shape) {
+	Tensor3D<T>::Tensor3D(Triplet shape) {
 		SetParams(shape.height, shape.width, shape.depth);
 	}
 
@@ -148,7 +148,7 @@ namespace convnet_core {
 	}
 
 	template<typename T>
-	inline Shape Tensor3D<T>::GetShape() {
+	inline Triplet Tensor3D<T>::GetShape() {
 		return this->shape;
 	}
 
@@ -162,8 +162,6 @@ namespace convnet_core {
 	template<typename T>
 	void Tensor3D<T>::AppendChannel(const cv::Mat& mat, int channel) {
 		assert(channel >= 0);
-
-		std::cout << "height: " << mat.rows << ", width: " << mat.cols << ", depth " << mat.channels() << std::endl;
 
 		for (int i = 0; i < mat.rows; ++i) {
 			for (int j = 0; j < mat.cols; ++j) {
@@ -210,10 +208,5 @@ namespace convnet_core {
 				for (int k = 0; k < z; k++)
 					t(i, j, k) = data[k][j][i];
 		return t;
-	}
-
-	static void PrintShape(Shape shape) {
-		std::cout << "(" << shape.height << +", " << shape.width 
-				  << ", " << shape.depth << ")" << std::endl;
 	}
 }
