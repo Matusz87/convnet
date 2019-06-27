@@ -1,10 +1,12 @@
 #pragma once
 
 #include <cassert>
+#include <cmath>
 #include <vector>
 #include <string>
 #include <opencv2/core/core.hpp>
 #include <iostream>
+#include <random>
 
 namespace convnet_core {
 	struct Triplet {
@@ -29,6 +31,8 @@ namespace convnet_core {
 		T& get(int row, int col, int channel);
 
 		Triplet GetShape();
+		void InitZeros();
+		void InitRandom();
 		//void CopyFrom(std::vector<std::vector<std::vector<T>>> data);
 
 		~Tensor3D();
@@ -177,6 +181,35 @@ namespace convnet_core {
 		shape.height = height;
 		shape.width = width;
 		shape.depth = depth;
+	}
+
+	template<typename T>
+	void Tensor3D<T>::InitZeros() {
+		for (int i = 0; i < shape.height; ++i)
+			for (int j = 0; j < shape.width; ++j)
+				for (int k = 0; k < shape.depth; ++k)
+					get(i, j, k) = 0;
+	}
+
+	template<typename T>
+	void Tensor3D<T>::InitRandom() {
+		std::random_device rd;
+		std::mt19937 generator(rd());
+
+//		double const distributionRangeHalfWidth = (2.4 / m_numInputs);
+//		double const standardDeviation = distributionRangeHalfWidth * 2 / 6;
+
+		// He initialization.
+		double n = shape.height*shape.width*shape.depth;
+		double const standard_dev = std::sqrt(2.0 / n);
+		std::normal_distribution<> normalDistribution(0, standard_dev);
+//		n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+//		m.weight.data.normal_(0, math.sqrt(2. / n))
+
+		for (int i = 0; i < shape.height; ++i)
+			for (int j = 0; j < shape.width; ++j)
+				for (int k = 0; k < shape.depth; ++k)
+					get(i, j, k) = normalDistribution(generator);
 	}
 
 	static void PrintTensor(Tensor3D<double>& tensor) {

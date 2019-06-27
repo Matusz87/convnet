@@ -3,6 +3,7 @@
 
 #include "TestTensor.h"
 #include "tensor3D.h"
+#include "Utils.h"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -48,6 +49,35 @@ bool TestTensor::TestTensorFromMatFail() {
 	assert(CompareMatToTensor(bgr, tensor));
 
 	return true;
+}
+
+bool TestTensor::TestInitZeros() {
+	std::cout << "TestInitZeros" << std::endl;
+	Tensor3D<double> t(3, 3, 2);
+	t.InitZeros();
+	convnet_core::PrintTensor(t);
+
+	for (int i = 0; i < t.GetShape().height; ++i) {
+		for (int j = 0; j < t.GetShape().width; ++j) {
+			for (int k = 0; k < t.GetShape().depth; ++k) {
+				assert(t(i, j, k) == 0);
+			}
+		}
+	}
+
+	return true;
+}
+
+bool TestTensor::TestInitRandom() {
+	std::cout << "TestInitRandom" << std::endl;
+	Tensor3D<double> t(3, 3, 2);
+	t.InitRandom();
+	convnet_core::PrintTensor(t);
+	std::cout << "TestInitRandom again" << std::endl;
+	t.InitRandom();
+	convnet_core::PrintTensor(t);
+	
+	return false;
 }
 
 bool TestTensor::TestTensorFromMatIntSuccess() {

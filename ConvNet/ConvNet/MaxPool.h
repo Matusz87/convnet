@@ -20,8 +20,6 @@ namespace layer {
 		// Stores the indexes of max element in each slices.
 		// Used in backprop for gradient routing.
 		std::vector<convnet_core::Triplet> max_indexes;
-
-		void init_grad_input();
 	};
 }
 

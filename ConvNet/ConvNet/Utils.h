@@ -50,4 +50,21 @@ namespace utils {
 
 		return tensor;
 	}
+
+	static Tensor3D<double> CreateTensorFrom3DVec(std::vector<Tensor3D<double>> vec,
+		int rows = 4, int cols = 4) {
+		
+		Tensor3D<double> tensor(rows, cols, vec.size());
+		for (int c = 0; c < vec.size(); ++c) {
+			Tensor3D<double> t = vec[c];
+			for (int i = 0; i < rows; ++i) {
+				for (int j = 0; j < cols; ++j) {
+					tensor(i, j, c) = t(i, j, 0);
+				}
+			}
+		}
+		
+
+		return tensor;
+	}
 }

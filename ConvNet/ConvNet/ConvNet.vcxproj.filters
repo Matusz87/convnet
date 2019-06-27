@@ -60,6 +60,12 @@
     <ClCompile Include="TestNet.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
+    <ClCompile Include="Conv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestConv.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Layer.h">
@@ -85,6 +91,12 @@
     </ClInclude>
     <ClInclude Include="TestNet.h">
       <Filter>Header Files\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="TestConv.h">
+      <Filter>Header Files\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="Conv.h">
+      <Filter>Header Files\layers</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

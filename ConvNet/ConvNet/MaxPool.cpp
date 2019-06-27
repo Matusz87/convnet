@@ -13,7 +13,7 @@ namespace layer {
 		int out_width = (shape.width - pool_size) / stride + 1;
 		output = Tensor3D<double>(out_height, out_width, shape.depth);
 		grad_input = Tensor3D<double>(shape.height, shape.width, shape.depth);
-		init_grad_input();
+		grad_input.InitZeros(); 
 
 		this->stride = stride;
 		this->pool_size = pool_size;
@@ -26,7 +26,7 @@ namespace layer {
 		int out_width = (shape.width - pool_size) / stride + 1;
 		output = Tensor3D<double>(out_height, out_width, shape.depth);
 		grad_input = Tensor3D<double>(shape.height, shape.width, shape.depth);
-		init_grad_input();
+		grad_input.InitZeros();
 
 		this->stride = stride;
 		this->pool_size = pool_size;
@@ -89,13 +89,5 @@ namespace layer {
 				}
 			}
 		}
-	}
-
-	void MaxPool::init_grad_input() {
-		convnet_core::Triplet shape = GetGradsShape();
-		for (int i = 0; i < shape.height; ++i)
-			for (int j = 0; j < shape.width; ++j)
-				for (int k = 0; k < shape.depth; ++k)
-					grad_input(i, j, k) = 0;
 	}
 }

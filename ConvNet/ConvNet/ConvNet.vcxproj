@@ -116,20 +116,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Conv.cpp" />
     <ClCompile Include="Layer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MaxPool.cpp" />
     <ClCompile Include="ReLU.cpp" />
     <ClCompile Include="tensor3D.h" />
+    <ClCompile Include="TestConv.cpp" />
     <ClCompile Include="TestMaxPool.cpp" />
     <ClCompile Include="TestNet.cpp" />
     <ClCompile Include="TestReLU.cpp" />
     <ClCompile Include="TestTensor.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Conv.h" />
     <ClInclude Include="Layer.h" />
     <ClInclude Include="MaxPool.h" />
     <ClInclude Include="ReLU.h" />
+    <ClInclude Include="TestConv.h" />
     <ClInclude Include="TestMaxPool.h" />
     <ClInclude Include="TestNet.h" />
     <ClInclude Include="TestReLU.h" />

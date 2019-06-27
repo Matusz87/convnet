@@ -8,11 +8,12 @@ class TestTensor
 {
 public:
 	TestTensor();
-	bool TestImageSplit();
 	bool TestTensorFromMatIntSuccess();
 	bool TestTensorFromMatIntFail();
 	bool TestTensorFromMatSuccess();
 	bool TestTensorFromMatFail();
+	bool TestInitZeros();
+	bool TestInitRandom();
 	~TestTensor();
 
 private:
