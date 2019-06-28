@@ -4,4 +4,5 @@ class TestNet
 {
 public:
 	bool TestReluPool();
+	bool TrainConvLayer();
 };

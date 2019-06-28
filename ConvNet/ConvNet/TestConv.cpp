@@ -30,8 +30,6 @@ bool TestConv::TestConstructor() {
 		f_size, stride, padding);
 	utils::PrintLayerShapes(conv_prev2);
 
-
-
 	return true;
 }
 
@@ -144,7 +142,6 @@ bool TestConv::TestForwardDeep() {
 	Tensor3D<double> input = utils::CreateTensorFrom3DVec(tensor3D, 3, 3);
 	convnet_core::PrintTensor(input);
 
-
 	std::vector<int> filt_vec1({ 1,0,0,1 });
 	std::vector<int> filt_vec2({ 1,0,0,1 });
 	Tensor3D<double> filter = utils::CreateTensorFromVec(filt_vec1, 2, 2);
@@ -241,6 +238,50 @@ bool TestConv::TestForward3() {
 	conv.Forward(conv.GetInput());
 	std::cout << "Convolved: " << std::endl;
 	convnet_core::PrintTensor(conv.GetOutput());
+
+	return true;
+}
+
+bool TestConv::TestBackprop() {
+	std::cout << "TestConv::TestBackprop" << std::endl;
+
+	std::vector<int> vec({ 1,0,1,0,1,1,0,1,0 });
+	Tensor3D<double> input = utils::CreateTensorFromVec(vec, 3, 3);
+	
+	std::vector<int> vec2({ 1,0,0,1 });
+	Tensor3D<double> filter = utils::CreateTensorFromVec(vec2, 2, 2);
+
+	std::vector<int> vec_t_e({ 1,2,0,1 });
+	Tensor3D<double> d_out = utils::CreateTensorFromVec(vec_t_e, 2, 2);
+
+	std::vector<int> vec4({ 3,2,1,2 });
+	//std::vector<int> vec4({ 1,0,1,5 });
+	Tensor3D<double> target = utils::CreateTensorFromVec(vec4, 2, 2);
+
+	int f_count = 1; int f_size = 2;
+	int stride = 1; int padding = 0;
+	layer::Conv conv(input, "conv_1", f_count, f_size, stride, padding);
+	utils::PrintLayerShapes(conv);
+	std::cout << conv.GetWeights()[0].GetShape().depth << std::endl;
+
+	conv.GetWeights()[0] = filter;
+	std::cout << "Weights: " << std::endl;
+	convnet_core::PrintTensor(conv.GetWeights()[0]);
+
+	conv.Forward(conv.GetInput());
+	std::cout << "Convolved: " << std::endl;
+	convnet_core::PrintTensor(conv.GetOutput());
+
+	std::cout << "Error: " << std::endl;
+	convnet_core::PrintTensor(d_out);
+	std::cout << "Loss: " << d_out.Sum() << std::endl;
+
+	conv.Backprop(d_out);
+	std::cout << "Grads w.r.t weight: " << std::endl;
+	convnet_core::PrintTensor(conv.GetGradWeights()[0]);
+
+	std::cout << "Grads w.r.t input: " << std::endl;
+	convnet_core::PrintTensor(conv.GetGradInput());
 
 	return true;
 }

@@ -3,8 +3,6 @@
 
 namespace layer {
 	Conv::Conv() { }
-
-
 	Conv::~Conv() { }
 
 	Conv::Conv(convnet_core::Triplet shape, std::string name, int f_count, 
@@ -49,51 +47,153 @@ namespace layer {
 
 		int vert_start, vert_end, horiz_start, horiz_end;
 		double inp;	// Value from input tensor.
-		int sum = 0;
-		// Row / column indexes for weight. Auxiliary variables for convolution.
+		double dotProduct = 0;
+		// Row/column indexes for weight. Auxiliary variables for convolution.
 		int w_row = 0; int w_col = 0; 
 
+		// Loop over channels (filters).
 		for (int c = 0; c < out_shape.depth; ++c) {
 			Tensor3D<double> W = weights[c];
 			Tensor3D<double> b = bias[c];
 
+			// For each filter, convolve input with the filter.
 			for (int h = 0; h < out_shape.height; ++h) {
 				for (int w = 0; w < out_shape.width; ++w) {
-					//for (int c = 0; c < out_shape.depth; ++c) {
-						// Calculate the boundary indexes of the slice.
-						vert_start = h * stride;
-						vert_end = vert_start + filter_size;
-						horiz_start = w * stride;
-						horiz_end = horiz_start + filter_size;
+					// Calculate the boundary indexes of the slice.
+					vert_start = h * stride;
+					vert_end = vert_start + filter_size;
+					horiz_start = w * stride;
+					horiz_end = horiz_start + filter_size;
 //std::cout << "v_s: " << vert_start << ", v_e: " << vert_end << ", h_s: " << horiz_start << ", h_e: " << horiz_end << std::endl;
-						sum = 0;
+					dotProduct = 0;
 						
-						// Dot product between input-slice and filter along the depth dimension.
-						for (int weight_depth = 0; weight_depth < W.GetShape().depth; ++weight_depth) {
-							w_row = 0;
-							for (int v_slice = vert_start; v_slice < vert_end; ++v_slice) {
-								w_col = 0;
-								for (int h_slice = horiz_start; h_slice < horiz_end; ++h_slice) {
-									double w = W(w_row, w_col, weight_depth);									
-									inp = padded(v_slice, h_slice, weight_depth);
+					// Dot product between input-slice and filter along the depth dimension.
+					for (int weight_depth = 0; weight_depth < W.GetShape().depth; ++weight_depth) {
+						w_row = 0;
+						for (int v_slice = vert_start; v_slice < vert_end; ++v_slice) {
+							w_col = 0;
+							for (int h_slice = horiz_start; h_slice < horiz_end; ++h_slice) {
+								double w = W(w_row, w_col, weight_depth);									
+								inp = padded(v_slice, h_slice, weight_depth);
 //std::cout << "v_s: " << v_slice << ", h_s: " << h_slice << ", w_d: " << weight_depth<< std::endl;
 //std::cout << "w_r: " << w_row << ", w_c: " << w_col << std::endl;
 //std::cout << "I: " << inp << ", W: " << w << std::endl;
-									sum += w * inp;
-
-									++w_col;
-								}
-								++w_row;
-							}								
-						}
-						output(h, w, c) = sum + b(0,0,0);
+								dotProduct += w * inp;
+								++w_col;
+							}
+							++w_row;
+						}								
 					}
+//std::cout << "h: " << h << ", w: " << w << ", c: " << c << ", dot: " << dotProduct << std::endl;
+					output(h, w, c) = dotProduct + b(0,0,0);
 				}
 			}
+		}
 	}
 
 	void Conv::Backprop(Tensor3D<double> grad_output) {
+		// TODO: HANDLE PADDING!!!
+		Tensor3D<double> padded = ZeroPad(input);
+		Tensor3D<double> grad_output_pad = ZeroPad(grad_output);
+		grad_input.InitZeros();
 
+		convnet_core::Triplet out_shape = GetOutputShape();
+		int vert_start, vert_end, horiz_start, horiz_end;
+		double inp;	// Value from input tensor.
+		double dotProduct = 0;
+		// Sum of grads for grad_bias.
+		double sum_dOut = 0;
+		// Row/column indexes for weight. Auxiliary variables for convolution.
+		int w_row = 0; int w_col = 0;
+
+		// Loop over channels (filters).
+		for (int c = 0; c < out_shape.depth; ++c) {
+			Tensor3D<double> W = weights[c];
+			Tensor3D<double> b = bias[c];
+
+			sum_dOut = 0;
+			// For each filter, convolve input with the filter.
+			for (int h = 0; h < out_shape.height; ++h) {
+				for (int w = 0; w < out_shape.width; ++w) {
+					// Calculate the boundary indexes of the slice.
+					vert_start = h * stride;
+					vert_end = vert_start + filter_size;
+					horiz_start = w * stride;
+					horiz_end = horiz_start + filter_size;
+					//std::cout << "v_s: " << vert_start << ", v_e: " << vert_end << ", h_s: " << horiz_start << ", h_e: " << horiz_end << std::endl;
+					
+					dotProduct = 0;
+					// Dot product between input-slice and filter along the depth dimension.
+					for (int weight_depth = 0; weight_depth < input.GetShape().depth; ++weight_depth) {
+						w_row = 0;
+						sum_dOut += grad_output(h, w, c);
+						for (int v_slice = vert_start; v_slice < vert_end; ++v_slice) {
+							w_col = 0;
+							for (int h_slice = horiz_start; h_slice < horiz_end; ++h_slice) {
+								// Calculate grad_weights.
+								// dW =  X * dOut
+								inp = padded(v_slice, h_slice, weight_depth);
+								double dO = grad_output(w_row, w_col, c);
+								dotProduct += dO * inp;
+
+								// Calculate grad_input. "Full convolution" over weights.
+								// dA += sum_h(sum_w(w x dOut_h_w)
+								// where w is the weight and dOut_h_w is a scalar corresponding 
+								// to the gradient of the cost with respect to the output.
+								inp = W(w_row, w_col, weight_depth);
+								dO = grad_output_pad(h, w, c);
+								grad_input(v_slice, h_slice, weight_depth) += (inp * dO);
+								
+								//std::cout << "v_s: " << v_slice << ", h_s: " << h_slice << ", w_d: " << weight_depth<< std::endl;
+								//std::cout << "w_r: " << w_row << ", w_c: " << w_col << std::endl;
+								//std::cout << "I: " << inp << ", W: " << w << std::endl;
+								
+								++w_col;
+							}
+							++w_row;
+						}
+					}
+					grad_weights[c](h, w, c) = dotProduct;
+				}
+			}
+			grad_bias[c](0, 0, 0) = sum_dOut;
+		}
+
+		// Update grad_input.
+		// Loop over channels (filters).
+//		for (int c = 0; c < out_shape.depth; ++c) {
+//			Tensor3D<double> W = weights[c];
+//		
+//			// For each filter, convolve input with the filter.
+//			for (int h = 0; h < out_shape.height; ++h) {
+//				for (int w = 0; w < out_shape.width; ++w) {
+//					// Calculate the boundary indexes of the slice.
+//					vert_start = h * stride;
+//					vert_end = vert_start + filter_size;
+//					horiz_start = w * stride;
+//					horiz_end = horiz_start + filter_size;
+//					//std::cout << "v_s: " << vert_start << ", v_e: " << vert_end << ", h_s: " << horiz_start << ", h_e: " << horiz_end << std::endl;
+//
+//					// Dot product between input-slice and filter along the depth dimension.
+//					for (int weight_depth = 0; weight_depth < input.GetShape().depth; ++weight_depth) {
+//						w_row = 0;
+//						for (int v_slice = vert_start; v_slice < vert_end; ++v_slice) {
+//							w_col = 0;
+//							for (int h_slice = horiz_start; h_slice < horiz_end; ++h_slice) {
+//								inp = W(w_row, w_col, weight_depth);
+//								double dO = grad_output_pad(h, w, c);								 
+//std::cout << "h: " << h << ", w: " << w;
+//std::cout << ", v_s: " << v_slice << ", h_s: " << h_slice << ", w_d: " << weight_depth<< std::endl;
+//std::cout << "W: " << inp << ", dO: " << dO << ", dot: " << (inp * dO) <<std::endl << std::endl;
+//								grad_input(v_slice, h_slice, weight_depth) += (inp * dO);
+//								++w_col;
+//							}
+//							++w_row;
+//						}						
+//					}					
+//				}
+//			}
+//		}
 	}
 
 	std::vector<Tensor3D<double>>& Conv::GetWeights() {
@@ -102,6 +202,19 @@ namespace layer {
 
 	std::vector<Tensor3D<double>>& Conv::GetBias() {
 		return bias;
+	}
+
+	std::vector<Tensor3D<double>>& Conv::GetGradWeights() {
+		return grad_weights;
+	}
+
+	std::vector<Tensor3D<double>>& Conv::GetGradBias() {
+		return grad_bias;
+	}
+
+	Tensor3D<double> Conv::GetGradInput()
+	{
+		return grad_input;
 	}
 
 	void Conv::InitWeights() {

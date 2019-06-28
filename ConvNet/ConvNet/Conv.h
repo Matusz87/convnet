@@ -19,6 +19,9 @@ namespace layer {
 		// Only for testing purposes.
 		std::vector<Tensor3D<double>>& GetWeights();
 		std::vector<Tensor3D<double>>& GetBias();
+		std::vector<Tensor3D<double>>& GetGradWeights();
+		std::vector<Tensor3D<double>>& GetGradBias();
+		Tensor3D<double> GetGradInput();
 
 	private:
 		// Number of filters of layer (i.e. output depth).
@@ -28,7 +31,9 @@ namespace layer {
 		int padding;
 		std::vector<Tensor3D<double>> weights;
 		std::vector<Tensor3D<double>> bias;
+		// Gradients of weights w.r.t. error from prev layer.
 		std::vector<Tensor3D<double>> grad_weights;
+		// Gradients of bias  w.r.t. error from prev layer.
 		std::vector<Tensor3D<double>> grad_bias;
 
 		void InitWeights();

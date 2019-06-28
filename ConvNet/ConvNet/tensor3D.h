@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <numeric>
 #include <vector>
 #include <string>
 #include <opencv2/core/core.hpp>
@@ -24,11 +25,14 @@ namespace convnet_core {
 		Tensor3D(const cv::Mat& image);
 		Tensor3D<T> operator+(const Tensor3D<T>& other);
 		Tensor3D<T> operator-(const Tensor3D<T>& other);
+		Tensor3D<T> operator*(T scalar);
 		Tensor3D<T> operator/(T scalar);
 		Tensor3D<T> operator=(const Tensor3D<T>& other);
 		
 		T& operator()(int row, int col, int channel);
 		T& get(int row, int col, int channel);
+		T Sum();
+		Tensor3D<T> Sign();
 
 		Triplet GetShape();
 		void InitZeros();
@@ -101,9 +105,18 @@ namespace convnet_core {
 	}
 
 	template<typename T>
+	inline Tensor3D<T> Tensor3D<T>::operator*(T scalar) {
+		Tensor3D<T> clone(*this);
+		for (int i = 0; i < shape.height * shape.width * shape.depth; i++)
+			clone.data[i] *= scalar;
+
+		return clone;
+	}
+
+	template<typename T>
 	inline Tensor3D<T> Tensor3D<T>::operator/(T scalar) {
 		Tensor3D<T> clone(*this);
-		for (int i = 0; i < other.shape.height * other.shape.width * other.shape.depth; i++)
+		for (int i = 0; i < shape.height * shape.width * hape.depth; i++)
 			clone.data[i] = this.data[i] / scalar;
 
 		return clone;
@@ -149,6 +162,29 @@ namespace convnet_core {
 				row * (shape.width) +
 				col
 		];
+	}
+
+	template<typename T>
+	inline T Tensor3D<T>::Sum() {
+		std::vector<double> err;
+		err.assign(data, data + shape.height*shape.width*shape.depth);
+
+		T Sum = std::accumulate(err.begin(), err.end(), 0);
+
+		return Sum;
+	}
+
+	template<typename T>
+	Tensor3D<T> Tensor3D<T>::Sign() {
+		Tensor3D<T> clone(*this);
+		for (int i = 0; i < shape.height * shape.width * shape.depth; i++) {
+			if (clone.data[i] > 0)
+				clone.data[i] = 1;
+			if (clone.data[i] < 0)
+				clone.data[i] = -1;
+		}
+
+		return clone;
 	}
 
 	template<typename T>
@@ -221,7 +257,7 @@ namespace convnet_core {
 			printf("[Dim%d]\n", z);
 			for (int x = 0; x < height; x++) {
 				for (int y = 0; y < width; y++) {
-					printf("%.2f ", (double)tensor.get(x, y, z));
+					printf("%.4f ", (double)tensor.get(x, y, z));
 				}
 				printf("\n");
 			}

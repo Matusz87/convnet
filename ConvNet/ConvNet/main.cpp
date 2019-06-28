@@ -7,6 +7,7 @@
 #include "TestMaxPool.h"
 #include "TestNet.h"
 #include "TestConv.h"
+#include "TestFC.h"
 
 #include <iostream>
 #include <string>
@@ -14,8 +15,13 @@
 int main(int argc, char** argv)
 {
 	int i;
-	/*TestNet testNet;
-	testNet.TestReluPool();*/
+
+	TestFC fc;
+	fc.TestConstructor();
+
+	TestNet testNet;
+	/*testNet.TestReluPool();*/
+	//testNet.TrainConvLayer();
 
 	TestTensor t;
 	/*t.TestInitZeros();
@@ -28,7 +34,8 @@ int main(int argc, char** argv)
 	testConv.TestForward2();
 	*/
 	//testConv.TestForward();
-	testConv.TestForward3();
+	//testConv.TestForward3();
+	//testConv.TestBackprop();
 	/*testConv.TestForward3();	
 	testConv.TestForwardDeep();
 	testConv.TestForwardPadded();
