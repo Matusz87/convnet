@@ -3,6 +3,9 @@
 
 namespace layer {
 	Layer::Layer() { }
+	Layer::Layer(std::string name) { 
+		this->name = name; 
+	}
 
 	Layer::Layer(convnet_core::Triplet shape, std::string name) {
 		this->name = name;
@@ -13,7 +16,6 @@ namespace layer {
 		this->name = name;
 		input = Tensor3D<double>(prev_activation);
 	}
-
 
 	Layer::~Layer() { }
 	convnet_core::Tensor3D<double> Layer::GetInput() {

@@ -17,11 +17,16 @@ int main(int argc, char** argv)
 	int i;
 
 	TestFC fc;
-	fc.TestConstructor();
+	/*fc.TestConstructor();
+	fc.TestForward();
+	fc.TestBackprop();*/
 
 	TestNet testNet;
 	/*testNet.TestReluPool();*/
 	//testNet.TrainConvLayer();
+	//testNet.TrainFC2();
+	//testNet.TrainMNISTdigit();
+	testNet.TrainSignFC();
 
 	TestTensor t;
 	/*t.TestInitZeros();

@@ -10,6 +10,7 @@ namespace layer {
 	{
 	public:
 		Layer();
+		Layer(std::string name);
 		Layer(convnet_core::Triplet shape, std::string name);
 		Layer(convnet_core::Tensor3D<double>& prev_activation, std::string name);
 		~Layer();

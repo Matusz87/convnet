@@ -27,6 +27,7 @@ namespace convnet_core {
 		Tensor3D<T> operator-(const Tensor3D<T>& other);
 		Tensor3D<T> operator*(T scalar);
 		Tensor3D<T> operator/(T scalar);
+		Tensor3D<T> operator+(T scalar);
 		Tensor3D<T> operator=(const Tensor3D<T>& other);
 		
 		T& operator()(int row, int col, int channel);
@@ -68,6 +69,7 @@ namespace convnet_core {
 			other.shape.width *other.shape.height *other.shape.depth * sizeof(T)
 		);
 		this->shape = other.shape;
+//		std::cout << "Tensor const: " << shape.height << " " << shape.width << " " << shape.depth << std::endl;
 	}
 
 	template<typename T>
@@ -116,8 +118,17 @@ namespace convnet_core {
 	template<typename T>
 	inline Tensor3D<T> Tensor3D<T>::operator/(T scalar) {
 		Tensor3D<T> clone(*this);
-		for (int i = 0; i < shape.height * shape.width * hape.depth; i++)
-			clone.data[i] = this.data[i] / scalar;
+		for (int i = 0; i < shape.height * shape.width * shape.depth; i++)
+			clone.data[i] = this->data[i] / scalar;
+
+		return clone;
+	}
+
+	template<typename T>
+	inline Tensor3D<T> Tensor3D<T>::operator+(T scalar) {
+		Tensor3D<T> clone(*this);
+		for (int i = 0; i < shape.height * shape.width * shape.depth; i++)
+			clone.data[i] = this->data[i] + scalar;
 
 		return clone;
 	}

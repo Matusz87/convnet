@@ -3,6 +3,12 @@
 namespace layer {
 	ReLU::ReLU() { 	}
 
+	ReLU::ReLU(std::string name, int height, int width, int depth) : Layer(name)	{
+		output = Tensor3D<double>(height, width, depth);
+		output = Tensor3D<double>(height, width, depth);
+		grad_input = Tensor3D<double>(height, width, depth);
+	}
+
 	ReLU::ReLU(convnet_core::Triplet shape, std::string name) : Layer(shape, name) {
 		output = Tensor3D<double>(shape.height, shape.width, shape.depth);
 		grad_input = Tensor3D<double>(shape.height, shape.width, shape.depth);
@@ -17,6 +23,7 @@ namespace layer {
 
 	void ReLU::Forward(Tensor3D<double> prev_activation) {
 		std::cout << "Input shape: ";
+		input = Tensor3D<double>(prev_activation);
 
 		int depth = input.GetShape().depth;
 		int height = input.GetShape().height;
