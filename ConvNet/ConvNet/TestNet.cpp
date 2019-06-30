@@ -8,6 +8,7 @@
 #include "MaxPool.h"
 #include "Conv.h"
 #include "FC.h"
+#include "Softmax.h"
 
 bool TestNet::TestReluPool() {
 	std::vector<int> vec{ 10, -20, 30, 40, -50, 60, 70, -80, 90, 100, -110, 120, 130, -140, 150, 160 };
@@ -97,7 +98,6 @@ bool TestNet::TrainConvLayer() {
 			conv.GetWeights()[i] = conv.GetWeights()[i] - dW;
 		}
 
-		// TODO: update bias
 		for (int i = 0; i < conv.GetBias().size(); ++i) {
 			db = conv.GetGradBias()[i];
 			db = db * lr;
@@ -414,6 +414,186 @@ bool TestNet::TrainSignFC() {
 		fc.GetBias() = fc.GetBias() - db;
 
 		std::cout << std::endl;
+	}
+
+	return true;
+}
+
+bool TestNet::TrainSignCE() {
+	std::cout << "TestNet::TrainSignCE" << std::endl;
+	std::vector<Tensor3D<double>> X;
+	std::vector<Tensor3D<double>> Y;
+
+	Tensor3D<double> input = utils::CreateTensorFromImage("../../../datasets/traffic_signs/train-52x52/1/1_0000.bmp");
+	X.push_back(input);
+	input = utils::CreateTensorFromImage("../../../datasets/traffic_signs/train-52x52/1/1_0001.bmp");
+	X.push_back(input);
+	input = utils::CreateTensorFromImage("../../../datasets/traffic_signs/train-52x52/1/1_0002.bmp");
+	X.push_back(input);
+	input = utils::CreateTensorFromImage("../../../datasets/traffic_signs/train-52x52/2/2_0000.bmp");
+	X.push_back(input);
+	input = utils::CreateTensorFromImage("../../../datasets/traffic_signs/train-52x52/2/2_0001.bmp");
+	X.push_back(input);
+	input = utils::CreateTensorFromImage("../../../datasets/traffic_signs/train-52x52/2/2_0001.bmp");
+	X.push_back(input);
+	//X.push_back(utils::CreateTensorFromImage(""));
+//	X.push_back(utils::CreateTensorFromImage("../../../datasets/traffic_signs/1_0000.bmp"));	
+	
+	std::vector<int> vec_t({ 1,0,0,0,0,0,0,0,0,0 });
+//	Tensor3D<double> target = utils::CreateTensorFromVec(vec_t, 10, 1);
+	Y.push_back(utils::CreateTensorFromVec(vec_t, 10, 1));
+	Y.push_back(utils::CreateTensorFromVec(vec_t, 10, 1));
+	Y.push_back(utils::CreateTensorFromVec(vec_t, 10, 1));
+	vec_t = std::vector<int>( { 0,1,0,0,0,0,0,0,0,0 } );
+	Y.push_back(utils::CreateTensorFromVec(vec_t, 10, 1));
+	Y.push_back(utils::CreateTensorFromVec(vec_t, 10, 1));
+	Y.push_back(utils::CreateTensorFromVec(vec_t, 10, 1));
+
+	// Gradient w.r.t error.
+	Tensor3D<double> d_out(10, 1, 1);
+
+	layer::Conv conv(input, "conv", 32, 3, 1, 0);
+	utils::PrintLayerShapes(conv);
+	layer::ReLU relu("relu", 50, 50, 32);
+	utils::PrintLayerShapes(relu);
+	layer::MaxPool pool("pool", 50, 50, 32, 2, 2);
+	utils::PrintLayerShapes(pool);
+	layer::FC fc("fc", 25*25*32, 10);
+	utils::PrintLayerShapes(fc);
+	layer::Softmax softmax("softmax", 10, 1, 1);
+
+	Tensor3D<double> dW, db, target;
+
+	double lr = 0.001;
+	for (int epoch = 0; epoch < 3; ++epoch) {
+		for (int m = 0; m < X.size(); ++m) {
+			input = X[m];
+			target = Y[m];
+
+			conv.Forward(input);
+			relu.Forward(conv.GetOutput());
+			pool.Forward(relu.GetOutput());
+			fc.Forward(pool.GetOutput().Flatten());
+			softmax.Forward(fc.GetOutput());
+
+			std::cout << std::endl << "Forward: " << m << std::endl;
+			convnet_core::PrintTensor(softmax.GetOutput());
+
+			// Calculate grads w.r.t loss function.
+			// Loss function is Mean Absolute Error.
+			d_out.InitZeros();
+			d_out = (softmax.GetOutput() - target);
+
+			// Derivative of loss function.
+			//d_out = d_out.Sign();
+
+			std::cout << "Loss: " << softmax.Loss(target) << std::endl;
+
+			softmax.Backprop(d_out);
+			fc.Backprop(softmax.GetGrads());
+			pool.Backprop(fc.GetGrads().Reshape(pool.GetOutputShape()));
+			relu.Backprop(pool.GetGrads());
+			conv.Backprop(relu.GetGrads());
+
+			// Update weights.
+			dW = fc.GetGradWeights();
+			dW = dW * lr;
+			fc.GetWeights() = fc.GetWeights() - dW;
+			db = fc.GetGradBias();
+			db = db * lr;
+			fc.GetBias() = fc.GetBias() - db;
+
+			// Conv layer update
+			for (int i = 0; i < conv.GetGradWeights().size(); ++i) {
+				dW = conv.GetGradWeights()[i];
+				dW = dW * lr;
+				conv.GetWeights()[i] = conv.GetWeights()[i] - dW;
+			}
+
+			for (int i = 0; i < conv.GetBias().size(); ++i) {
+				db = conv.GetGradBias()[i];
+				db = db * lr;
+				conv.GetBias()[i] = conv.GetBias()[i] - db;
+			}
+		}
+
+		std::cout << "Epoch " << epoch << " is done. " << std::endl;
+	}
+
+	return true;
+}
+
+bool TestNet::TrainSign() {
+	std::cout << "TestNet::TrainSign" << std::endl;
+
+	convnet_core::Tensor3D<double> input = utils::CreateTensorFromImage("../../../datasets/traffic_signs/1_0000.bmp");
+
+	std::vector<int> vec_t({ 1,0,0,0,0,0,0,0,0,0 });
+	Tensor3D<double> target = utils::CreateTensorFromVec(vec_t, 10, 1);
+
+	// Gradient w.r.t error.
+	Tensor3D<double> d_out(10, 1, 1);
+
+	layer::Conv conv(input, "conv", 32, 3, 1, 0);
+	utils::PrintLayerShapes(conv);
+	layer::ReLU relu("relu", 50, 50, 32);
+	utils::PrintLayerShapes(relu);
+	layer::MaxPool pool("pool", 50, 50, 32, 2, 2);
+	utils::PrintLayerShapes(pool);
+	layer::FC fc("fc", 25 * 25 * 32, 10);
+	utils::PrintLayerShapes(fc);
+	//	layer::ReLU relu-fc("relu-fc", 128, 1, 1);
+	//	layer::FC fc2("fc2", 128, 10);
+
+	Tensor3D<double> dW, db;
+
+	double lr = 0.00001;
+	for (int epoch = 0; epoch < 10; ++epoch) {
+		conv.Forward(input);
+		relu.Forward(conv.GetOutput());
+		pool.Forward(relu.GetOutput());
+		fc.Forward(pool.GetOutput().Flatten());
+
+		std::cout << std::endl << "Forward: " << std::endl;
+		convnet_core::PrintTensor(fc.GetOutput());
+
+		// Calculate grads w.r.t loss function.
+		// Loss function is Mean Absolute Error.
+		d_out.InitZeros();
+		d_out = (fc.GetOutput() - target);
+
+		// Derivative of loss function.
+		d_out = d_out.Sign();
+
+		std::cout << "Loss: " << d_out.Sum() << std::endl;
+
+		fc.Backprop(d_out);
+		pool.Backprop(fc.GetGrads().Reshape(pool.GetOutputShape()));
+		relu.Backprop(pool.GetGrads());
+		conv.Backprop(relu.GetGrads());
+
+		// Update weights.
+		dW = fc.GetGradWeights();
+		dW = dW * lr;
+		fc.GetWeights() = fc.GetWeights() - dW;
+		db = fc.GetGradBias();
+		db = db * lr;
+		fc.GetBias() = fc.GetBias() - db;
+
+		// Conv layer update
+		for (int i = 0; i < conv.GetGradWeights().size(); ++i) {
+			dW = conv.GetGradWeights()[i];
+			dW = dW * lr;
+			conv.GetWeights()[i] = conv.GetWeights()[i] - dW;
+		}
+
+		for (int i = 0; i < conv.GetBias().size(); ++i) {
+			db = conv.GetGradBias()[i];
+			db = db * lr;
+			conv.GetBias()[i] = conv.GetBias()[i] - db;
+		}
+
+		std::cout << "Epoch " << epoch << " is done. " << std::endl;
 	}
 
 	return true;

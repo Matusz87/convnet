@@ -8,6 +8,7 @@
 #include "TestNet.h"
 #include "TestConv.h"
 #include "TestFC.h"
+#include "TestSoftmax.h"
 
 #include <iostream>
 #include <string>
@@ -26,13 +27,16 @@ int main(int argc, char** argv)
 	//testNet.TrainConvLayer();
 	//testNet.TrainFC2();
 	//testNet.TrainMNISTdigit();
-	testNet.TrainSignFC();
+	//testNet.TrainSignFC();
+	//testNet.TrainSign();
+	testNet.TrainSignCE();
 
 	TestTensor t;
 	/*t.TestInitZeros();
 	t.TestInitRandom();*/
 
 	TestConv testConv;
+	//testConv.TestUnpadding();
 	/*testConv.TestConstructor();
 	testConv.TestPadding();
 	testConv.TestForward();
@@ -41,24 +45,29 @@ int main(int argc, char** argv)
 	//testConv.TestForward();
 	//testConv.TestForward3();
 	//testConv.TestBackprop();
+	//testConv.TestBackpropPadded();
 	/*testConv.TestForward3();	
 	testConv.TestForwardDeep();
 	testConv.TestForwardPadded();
 */
-	/*TestMaxPool testMaxPool;
-	testMaxPool.TestConstructor();
-	testMaxPool.TestConstructorWithTensor();
-	testMaxPool.TestConstructorWithMat();
-	testMaxPool.TestForward();
+	TestMaxPool testMaxPool;
+	//testMaxPool.TestConstructor();
+	//testMaxPool.TestConstructorWithTensor();
+	//testMaxPool.TestConstructorWithMat();
+	/*testMaxPool.TestForward();
 	testMaxPool.TestForwardWithMat();
 	testMaxPool.TestBackprop();
-
-	TestReLU testReLU;
+*/
+/*	TestReLU testReLU;
 	testReLU.TestConstructor();
 	testReLU.TestConstructorWithTensor();
 	testReLU.TestConstructorWithMat();
 	testReLU.TestForward();
 */
+
+	TestSoftmax testSoftmax;
+	//testSoftmax.TestForward();
+
 	std::cin >> i;
 
 	//TestTensor testTensor;

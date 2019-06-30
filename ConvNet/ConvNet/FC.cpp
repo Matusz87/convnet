@@ -45,17 +45,18 @@ namespace layer {
 		}
 	}
 
+	// dX = dOut*W
+	// dW = X*dOut
+	// db = sum(dOut)
 	void FC::Backprop(Tensor3D<double> grad_output) {
 		grad_input.InitZeros();
-		// dX = dOut*W
-		// dW = X*dOut
-		// db = sum(dOut)
-
+//std::cout << input.GetShape().height << " " << input.GetShape().width << " " << input.GetShape().depth << std::endl;
 		double sum = 0;
 		for (int n = 0; n < output.GetShape().height; n++) 		{
 			for (int i = 0; i < input.GetShape().height; i++)
 				for (int j = 0; j < input.GetShape().width; j++)
 					for (int k = 0; k < input.GetShape().depth; k++) {
+//std::cout << n << " " << i << " " << j << " " << k << std::endl;
 						int weight_index = MapToUnrolledIndex(i, j, k);
 						grad_input(i, j, k) += grad_output(n, 0, 0) * weights(weight_index, n, 0);
 						grad_weights(weight_index, n, 0) = input(i, j, k) * grad_output(n, 0, 0);
@@ -88,7 +89,6 @@ namespace layer {
 
 	void FC::InitWeights() {
 		convnet_core::Triplet input_shape = input.GetShape();
-		std::cout << input_shape.height << " " << input_shape.width << " " << input_shape.depth << std::endl;
 		weights = Tensor3D<double>(input_shape.height*input_shape.width*input_shape.depth,
 						   num_hidden, 1);
 

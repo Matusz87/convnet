@@ -72,6 +72,12 @@
     <ClCompile Include="TestFC.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
+    <ClCompile Include="Softmax.cpp">
+      <Filter>Source Files\layers</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSoftmax.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Layer.h">
@@ -109,6 +115,12 @@
     </ClInclude>
     <ClInclude Include="FC.h">
       <Filter>Source Files\layers</Filter>
+    </ClInclude>
+    <ClInclude Include="TestSoftmax.h">
+      <Filter>Header Files\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="Softmax.h">
+      <Filter>Header Files\layers</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

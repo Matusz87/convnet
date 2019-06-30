@@ -34,6 +34,8 @@ namespace convnet_core {
 		T& get(int row, int col, int channel);
 		T Sum();
 		Tensor3D<T> Sign();
+		Tensor3D<T> Flatten();
+		Tensor3D<T> Reshape(Triplet shape);
 
 		Triplet GetShape();
 		void InitZeros();
@@ -145,18 +147,6 @@ namespace convnet_core {
 
 		return *this;
 	}
-	
-	/*template<typename T>
-	void Tensor3D<T>::copy_from(std::vector<std::vector<std::vector<T>>> data) {
-		int z = data.shape();
-		int y = data[0].shape();
-		int x = data[0][0].shape();
-
-		for (int i = 0; i < x; i++)
-			for (int j = 0; j < y; j++)
-				for (int k = 0; k < z; k++)
-					get(i, j, k) = data[k][j][i];
-	}*/
 
 	template<typename T>
 	inline T & Tensor3D<T>::operator()(int row, int col, int channel) {
@@ -194,6 +184,34 @@ namespace convnet_core {
 			if (clone.data[i] < 0)
 				clone.data[i] = -1;
 		}
+
+		return clone;
+	}
+
+	template<typename T>
+	Tensor3D<T> Tensor3D<T>::Flatten() {
+		Tensor3D<T> clone(*this);
+		int size = shape.width * shape.height * shape.depth;
+		for (int i = 0; i < shape.height * shape.width * shape.depth; i++)
+			clone.data[i] = this->data[i];
+
+		clone.shape.height = size;
+		clone.shape.width = 1;
+		clone.shape.depth = 1;
+
+		return clone;
+	}
+
+	template<typename T>
+	Tensor3D<T> Tensor3D<T>::Reshape(Triplet new_shape) {
+		Tensor3D<T> clone(*this);
+		int size = shape.width * shape.height * shape.depth;
+		for (int i = 0; i < shape.height * shape.width * shape.depth; i++)
+			clone.data[i] = this->data[i];
+
+		clone.shape.height = new_shape.height;
+		clone.shape.width = new_shape.width;
+		clone.shape.depth = new_shape.depth;
 
 		return clone;
 	}

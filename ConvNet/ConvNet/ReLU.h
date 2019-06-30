@@ -12,7 +12,7 @@ namespace layer {
 		~ReLU();
 
 		void Forward(Tensor3D<double> prev_activation) override;
-		void Backprop(Tensor3D<double> drad_out) override;
+		void Backprop(Tensor3D<double> grad_out) override;
 	};
 }
 

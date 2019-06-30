@@ -6,6 +6,8 @@ namespace layer {
 	public:
 		MaxPool();
 		~MaxPool();
+		MaxPool(std::string name, int height, int width, int depth,
+				int stride, int pool_size);
 		MaxPool(convnet_core::Triplet shape, std::string name,
 			int stride, int pool_size);
 		MaxPool(convnet_core::Tensor3D<double>& prev_activation, std::string name,

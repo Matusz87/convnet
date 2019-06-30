@@ -22,7 +22,8 @@ namespace layer {
 		std::vector<Tensor3D<double>>& GetGradWeights();
 		std::vector<Tensor3D<double>>& GetGradBias();
 		Tensor3D<double> GetGradInput();
-
+		Tensor3D<double> Unpad(Tensor3D<double> tensor);
+		Tensor3D<double> ZeroPad(Tensor3D<double> tensor);
 	private:
 		// Number of filters of layer (i.e. output depth).
 		int filter_count;
@@ -39,6 +40,7 @@ namespace layer {
 		void InitWeights();
 		void InitBias();
 		void InitGrads();
-		Tensor3D<double> ZeroPad(Tensor3D<double> tensor);
+		/*Tensor3D<double> ZeroPad(Tensor3D<double> tensor);*/
+		//Tensor3D<double> Unpad(Tensor3D<double> tensor);
 	};
 }

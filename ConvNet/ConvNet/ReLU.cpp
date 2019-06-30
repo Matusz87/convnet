@@ -24,10 +24,13 @@ namespace layer {
 	void ReLU::Forward(Tensor3D<double> prev_activation) {
 		std::cout << "Input shape: ";
 		input = Tensor3D<double>(prev_activation);
+		
 
 		int depth = input.GetShape().depth;
 		int height = input.GetShape().height;
 		int width = input.GetShape().width;
+		output = Tensor3D<double>(height, width, depth);
+
 		for (int k = 0; k < depth; ++k) {
 			for (int i = 0; i < height; ++i) {
 				for (int j = 0; j < width; ++j) {
@@ -39,6 +42,8 @@ namespace layer {
 
 	//https://leonardoaraujosantos.gitbooks.io/artificial-inteligence/content/relu_layer.html
 	void ReLU::Backprop(Tensor3D<double> grad_out) {
+		grad_input.InitZeros();
+
 		int depth = input.GetShape().depth;
 		int height = input.GetShape().height;
 		int width = input.GetShape().width;

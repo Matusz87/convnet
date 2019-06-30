@@ -122,12 +122,14 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MaxPool.cpp" />
     <ClCompile Include="ReLU.cpp" />
+    <ClCompile Include="Softmax.cpp" />
     <ClCompile Include="tensor3D.h" />
     <ClCompile Include="TestConv.cpp" />
     <ClCompile Include="TestFC.cpp" />
     <ClCompile Include="TestMaxPool.cpp" />
     <ClCompile Include="TestNet.cpp" />
     <ClCompile Include="TestReLU.cpp" />
+    <ClCompile Include="TestSoftmax.cpp" />
     <ClCompile Include="TestTensor.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -136,11 +138,13 @@
     <ClInclude Include="Layer.h" />
     <ClInclude Include="MaxPool.h" />
     <ClInclude Include="ReLU.h" />
+    <ClInclude Include="Softmax.h" />
     <ClInclude Include="TestConv.h" />
     <ClInclude Include="TestFC.h" />
     <ClInclude Include="TestMaxPool.h" />
     <ClInclude Include="TestNet.h" />
     <ClInclude Include="TestReLU.h" />
+    <ClInclude Include="TestSoftmax.h" />
     <ClInclude Include="TestTensor.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>

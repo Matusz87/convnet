@@ -3,10 +3,18 @@
 
 namespace layer {
 	MaxPool::MaxPool() { }
-
-
 	MaxPool::~MaxPool() { }
 
+	MaxPool::MaxPool(std::string name, int height, int width, int depth,
+					 int stride, int pool_size) : Layer(name) {
+		input = Tensor3D<double>(height, width, depth);
+		int out_height = (height - pool_size) / stride + 1;
+		int out_width = (width - pool_size) / stride + 1;
+		output = Tensor3D<double>(out_height, out_width, depth);
+		grad_input = Tensor3D<double>(height, width, depth);
+		this->stride = stride;
+		this->pool_size = pool_size;
+	}
 	MaxPool::MaxPool(convnet_core::Triplet shape, std::string name,
 					 int stride, int pool_size) : Layer(shape, name) {
 		int out_height = (shape.height - pool_size) / stride + 1;
@@ -33,6 +41,10 @@ namespace layer {
 	}
 
 	void MaxPool::Forward(Tensor3D<double> prev_activation) {
+		std::cout << "Input shape: ";
+		input = Tensor3D<double>(prev_activation);
+		max_indexes.clear();
+
 		convnet_core::Triplet out_shape = GetOutputShape();
 
 		int vert_start, vert_end, horiz_start, horiz_end;
@@ -71,6 +83,7 @@ namespace layer {
 	}
 
 	void MaxPool::Backprop(Tensor3D<double> grad_out) {
+		grad_input.InitZeros();
 		convnet_core::Triplet grad_shape = GetOutputShape();
 		assert(grad_shape.height * grad_shape.width * grad_shape.depth == max_indexes.size());
 

@@ -6,6 +6,7 @@ public:
 	~TestConv();
 	bool TestConstructor();
 	bool TestPadding();
+	bool TestUnpadding();
 	bool TestForward();
 	bool TestForwardPadded();
 	bool TestForward2();
@@ -13,5 +14,6 @@ public:
 	bool TestForward3();
 	bool TestForwardWithMat();
 	bool TestBackprop();
+	bool TestBackpropPadded();
 };
 

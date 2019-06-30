@@ -54,6 +54,30 @@ bool TestConv::TestPadding() {
 	return true;
 }
 
+bool TestConv::TestUnpadding() {
+	std::vector<int> vec({ 1,2,3,4,5,6,7,8,9 });
+	Tensor3D<double> tensor = utils::CreateTensorFromVec(vec, 3, 3);
+	tensor = Tensor3D<double>(2, 2, 2);
+	tensor.InitRandom();
+
+	int f_count = 2; int f_size = 3;
+	int stride = 2; int padding = 2;
+	layer::Conv conv(tensor, "conv_1", f_count, f_size, stride, padding);
+
+	std::cout << "Input: " << std::endl;
+	convnet_core::PrintTensor(conv.GetInput());
+
+	std::cout << "Padded: " << std::endl;
+	Tensor3D<double> padded = conv.ZeroPad(conv.GetInput());
+	convnet_core::PrintTensor(padded);
+
+	std::cout << "Unpadded: " << std::endl;
+	Tensor3D<double> unpadded = conv.Unpad(padded);
+	convnet_core::PrintTensor(unpadded);
+	
+	return true;
+}
+
 bool TestConv::TestForward() {
 	std::cout << "TestConv::TestForward" << std::endl;
 
@@ -260,6 +284,50 @@ bool TestConv::TestBackprop() {
 
 	int f_count = 1; int f_size = 2;
 	int stride = 1; int padding = 0;
+	layer::Conv conv(input, "conv_1", f_count, f_size, stride, padding);
+	utils::PrintLayerShapes(conv);
+	std::cout << conv.GetWeights()[0].GetShape().depth << std::endl;
+
+	conv.GetWeights()[0] = filter;
+	std::cout << "Weights: " << std::endl;
+	convnet_core::PrintTensor(conv.GetWeights()[0]);
+
+	conv.Forward(conv.GetInput());
+	std::cout << "Convolved: " << std::endl;
+	convnet_core::PrintTensor(conv.GetOutput());
+
+	std::cout << "Error: " << std::endl;
+	convnet_core::PrintTensor(d_out);
+	std::cout << "Loss: " << d_out.Sum() << std::endl;
+
+	conv.Backprop(d_out);
+	std::cout << "Grads w.r.t weight: " << std::endl;
+	convnet_core::PrintTensor(conv.GetGradWeights()[0]);
+
+	std::cout << "Grads w.r.t input: " << std::endl;
+	convnet_core::PrintTensor(conv.GetGradInput());
+
+	return true;
+}
+
+bool TestConv::TestBackpropPadded() {
+	std::cout << "TestConv::TestBackpropPadded" << std::endl;
+
+	std::vector<int> vec({ 1,1,1,2 });
+	Tensor3D<double> input = utils::CreateTensorFromVec(vec, 2, 2);
+
+	std::vector<int> vec2({ 1,0,0,1 });
+	Tensor3D<double> filter = utils::CreateTensorFromVec(vec2, 2, 2);
+
+	std::vector<int> vec_t_e({ 1,0,2,0,1,1,2,1,0 });
+	Tensor3D<double> d_out = utils::CreateTensorFromVec(vec_t_e, 3, 3);
+
+	std::vector<int> vec4({ 2,1,2,1,4,2,2,2,2 });
+	//std::vector<int> vec4({ 1,0,1,5 });
+	Tensor3D<double> target = utils::CreateTensorFromVec(vec4, 3, 3);
+
+	int f_count = 1; int f_size = 2;
+	int stride = 1; int padding = 1;
 	layer::Conv conv(input, "conv_1", f_count, f_size, stride, padding);
 	utils::PrintLayerShapes(conv);
 	std::cout << conv.GetWeights()[0].GetShape().depth << std::endl;
