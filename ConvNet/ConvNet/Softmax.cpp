@@ -52,5 +52,5 @@ namespace layer {
 		grad_input = grad_out;
 	}
 
-	void Softmax::UpdateWeights(double learning_rate) { }
+	void Softmax::UpdateWeights(double learning_rate, double momentum) { }
 }

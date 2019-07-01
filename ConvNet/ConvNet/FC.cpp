@@ -74,14 +74,11 @@ namespace layer {
 		grad_bias = grad_bias + sum;
 	}
 
-	void FC::UpdateWeights(double lr) {
-		/*Tensor3D<double> dW = GetGradWeights();
-		dW = dW * lr;
-		*/
-		weights = weights - grad_weights*lr;
-		//weights = weights - dW;
-		//db = fc.GetGradBias();
-		//db = db * lr;
+	void FC::UpdateWeights(double lr, double momentum) {
+		velocities = velocities*momentum + grad_weights*lr;
+		weights = weights - velocities;
+		//weights = weights - grad_weights*lr;
+
 		bias = bias - (grad_bias*lr);
 	}
 
@@ -127,7 +124,9 @@ namespace layer {
 		int inp_num = input.GetShape().height*input.GetShape().width*input.GetShape().depth;
 		grad_weights = Tensor3D<double>(inp_num, num_hidden, 1);
 		grad_weights.InitZeros();
-
+		velocities = Tensor3D<double>(inp_num, num_hidden, 1);
+		velocities.InitZeros();
+		
 		grad_bias = Tensor3D<double>(num_hidden, 1, 1);
 		grad_bias.InitZeros();
 	}

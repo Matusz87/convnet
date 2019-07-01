@@ -16,7 +16,7 @@ namespace layer {
 
 		void Forward(Tensor3D<double> prev_activation) override;
 		void Backprop(Tensor3D<double> grad_output) override;
-		void UpdateWeights(double learning_rate) override;
+		void UpdateWeights(double learning_rate, double momentum = 0.9) override;
 
 		// Only for testing purposes.
 		Tensor3D<double>& GetWeights();
@@ -34,6 +34,9 @@ namespace layer {
 		Tensor3D<double> grad_weights;
 		// Gradients of bias  w.r.t. error from prev layer.
 		Tensor3D<double> grad_bias;
+		// Velocities for momentum.
+		Tensor3D<double> velocities;
+
 		// Auxiliary container for backprop.
 		std::vector<double> output_values;
 		bool has_weights_initialized;

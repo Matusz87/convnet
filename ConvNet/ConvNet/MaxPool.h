@@ -15,7 +15,7 @@ namespace layer {
 
 		void Forward(Tensor3D<double> prev_activation) override;
 		void Backprop(Tensor3D<double> grad_output) override;
-		void UpdateWeights(double learning_rate) override;
+		void UpdateWeights(double learning_rate, double momentum = 0.9) override;
 
 	private:
 		int stride;

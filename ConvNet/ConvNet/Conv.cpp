@@ -221,9 +221,12 @@ namespace layer {
 		}
 	}
 
-	void Conv::UpdateWeights(double lr) {
+	void Conv::UpdateWeights(double lr, double momentum) {
 		for (int i = 0; i < grad_weights.size(); ++i) {
-			weights[i] = weights[i] - (grad_weights[i]*lr);
+			velocities[i] = velocities[i]*momentum + grad_weights[i]*lr;
+			weights[i] = weights[i] - velocities[i];
+			
+			//weights[i] = weights[i] - (grad_weights[i]*lr);
 		}
 		
 		for (int i = 0; i < grad_bias.size(); ++i) {
@@ -280,6 +283,7 @@ namespace layer {
 			Tensor3D<double> dW(filter_size, filter_size, input.GetShape().depth);
 			dW.InitZeros();
 			grad_weights.push_back(dW);
+			velocities.push_back(Tensor3D<double>(dW));
 		}
 	}
 

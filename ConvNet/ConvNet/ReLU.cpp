@@ -54,7 +54,7 @@ namespace layer {
 		}
 	}
 
-	void ReLU::UpdateWeights(double lr) { }
+	void ReLU::UpdateWeights(double lr, double momentum) { }
 
 	ReLU::~ReLU() { }
 }

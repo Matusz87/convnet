@@ -548,7 +548,7 @@ bool TestNet::TrainSignCE2() {
 	Tensor3D<double> dW, db, target;
 	utils::Dataset trainingSet = utils::GetTrainingSet();
 
-	double lr = 0.0005;
+	double lr = 0.0001;
 	double cum_loss = 0;
 	int correct = 0;
 	for (int epoch = 1; epoch <= 50; ++epoch) {

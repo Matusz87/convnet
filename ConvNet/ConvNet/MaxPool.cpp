@@ -103,5 +103,5 @@ namespace layer {
 		}
 	}
 
-	void MaxPool::UpdateWeights(double lr) { }
+	void MaxPool::UpdateWeights(double lr, double momentum) { }
 }
