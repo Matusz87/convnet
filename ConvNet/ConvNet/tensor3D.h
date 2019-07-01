@@ -40,6 +40,7 @@ namespace convnet_core {
 		Triplet GetShape();
 		void InitZeros();
 		void InitRandom();
+		const T* GetData();
 		//void CopyFrom(std::vector<std::vector<std::vector<T>>> data);
 
 		~Tensor3D();
@@ -275,6 +276,11 @@ namespace convnet_core {
 			for (int j = 0; j < shape.width; ++j)
 				for (int k = 0; k < shape.depth; ++k)
 					get(i, j, k) = normalDistribution(generator);
+	}
+
+	template<typename T>
+	inline const T * Tensor3D<T>::GetData() {
+		return data;
 	}
 
 	static void PrintTensor(Tensor3D<double>& tensor) {

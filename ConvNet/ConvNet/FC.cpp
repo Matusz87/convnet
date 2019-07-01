@@ -7,6 +7,7 @@ namespace layer {
 	FC::FC(std::string name, int num_hidden) : Layer(name) {
 		output = Tensor3D<double>(num_hidden, 1, 1);
 		InitBias();
+		has_weights_initialized = false;
 	}
 
 	FC::FC(std::string name, int num_input, int num_hidden) : Layer(name) {
@@ -16,6 +17,7 @@ namespace layer {
 		InitWeights();
 		InitBias();
 		InitGrads();
+		has_weights_initialized = true;
 	}
 
 	FC::FC(convnet_core::Tensor3D<double>& prev_activation, std::string name,
@@ -25,10 +27,16 @@ namespace layer {
 		InitWeights();
 		InitBias();
 		InitGrads();
+		has_weights_initialized = true;
 	}
 
 	void FC::Forward(Tensor3D<double> prev_activation) 	{
 		input = Tensor3D<double>(prev_activation);
+		if (!has_weights_initialized) {
+			InitWeights();
+			InitGrads();
+		}
+
 
 		for (int n = 0; n < output.GetShape().height; n++) {	
 			double dot = 0;
@@ -64,6 +72,17 @@ namespace layer {
 			sum += grad_output(n, 0, 0);
 		}
 		grad_bias = grad_bias + sum;
+	}
+
+	void FC::UpdateWeights(double lr) {
+		/*Tensor3D<double> dW = GetGradWeights();
+		dW = dW * lr;
+		*/
+		weights = weights - grad_weights*lr;
+		//weights = weights - dW;
+		//db = fc.GetGradBias();
+		//db = db * lr;
+		bias = bias - (grad_bias*lr);
 	}
 
 	Tensor3D<double>& FC::GetWeights() 	{

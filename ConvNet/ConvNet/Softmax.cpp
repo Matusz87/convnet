@@ -24,6 +24,8 @@ namespace layer {
 		assert(prev_activation.GetShape().width == 1 &&
 			prev_activation.GetShape().depth == 1);
 
+		double max = std::numeric_limits<double>::lowest();
+
 		double sum_exp = 0;
 		double exp_val = 0;
 		for (int i = 0; i < prev_activation.GetShape().height; ++i) {
@@ -50,4 +52,5 @@ namespace layer {
 		grad_input = grad_out;
 	}
 
+	void Softmax::UpdateWeights(double learning_rate) { }
 }

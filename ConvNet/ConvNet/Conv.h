@@ -7,6 +7,7 @@ namespace layer {
 	public:
 		Conv();
 		~Conv();
+		Conv(int height, int width, int depth, std::string name, int f_count, int f_size, int stride, int padding);
 		Conv(convnet_core::Triplet shape, std::string name,
 			 int f_count, int f_size, int stride, int padding);
 		Conv(convnet_core::Tensor3D<double>& prev_activation, std::string name,
@@ -14,6 +15,7 @@ namespace layer {
 
 		void Forward(Tensor3D<double> prev_activation) override;
 		void Backprop(Tensor3D<double> grad_output) override;
+		void UpdateWeights(double learning_rate) override;
 		//Tensor3D<double> ZeroPad(Tensor3D<double> tensor);
 
 		// Only for testing purposes.

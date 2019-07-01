@@ -16,7 +16,7 @@ namespace layer {
 
 		void Forward(Tensor3D<double> prev_activation) override;
 		void Backprop(Tensor3D<double> grad_output) override;
-		//Tensor3D<double> ZeroPad(Tensor3D<double> tensor);
+		void UpdateWeights(double learning_rate) override;
 
 		// Only for testing purposes.
 		Tensor3D<double>& GetWeights();
@@ -36,6 +36,7 @@ namespace layer {
 		Tensor3D<double> grad_bias;
 		// Auxiliary container for backprop.
 		std::vector<double> output_values;
+		bool has_weights_initialized;
 
 		void InitWeights();
 		void InitBias();

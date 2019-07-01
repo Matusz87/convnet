@@ -14,6 +14,7 @@ public:
 	bool TestForward3();
 	bool TestForwardWithMat();
 	bool TestBackprop();
+	bool TestBackprop2();
 	bool TestBackpropPadded();
 };
 

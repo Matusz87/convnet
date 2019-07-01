@@ -41,7 +41,6 @@ namespace layer {
 	}
 
 	void MaxPool::Forward(Tensor3D<double> prev_activation) {
-		std::cout << "Input shape: ";
 		input = Tensor3D<double>(prev_activation);
 		max_indexes.clear();
 
@@ -103,4 +102,6 @@ namespace layer {
 			}
 		}
 	}
+
+	void MaxPool::UpdateWeights(double lr) { }
 }

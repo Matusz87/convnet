@@ -121,6 +121,7 @@
     <ClCompile Include="Layer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MaxPool.cpp" />
+    <ClCompile Include="Model.cpp" />
     <ClCompile Include="ReLU.cpp" />
     <ClCompile Include="Softmax.cpp" />
     <ClCompile Include="tensor3D.h" />
@@ -137,6 +138,7 @@
     <ClInclude Include="FC.h" />
     <ClInclude Include="Layer.h" />
     <ClInclude Include="MaxPool.h" />
+    <ClInclude Include="Model.h" />
     <ClInclude Include="ReLU.h" />
     <ClInclude Include="Softmax.h" />
     <ClInclude Include="TestConv.h" />

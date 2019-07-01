@@ -31,6 +31,9 @@
     <Filter Include="Header Files\tests">
       <UniqueIdentifier>{6dacdc27-b887-4f33-af67-f345f15a5e16}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\core">
+      <UniqueIdentifier>{ad493678-b06a-4162-a863-ec7efe4b2f79}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -78,6 +81,9 @@
     <ClCompile Include="TestSoftmax.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
+    <ClCompile Include="Model.cpp">
+      <Filter>Source Files\core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Layer.h">
@@ -98,9 +104,6 @@
     <ClInclude Include="TestMaxPool.h">
       <Filter>Header Files\tests</Filter>
     </ClInclude>
-    <ClInclude Include="Utils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="TestNet.h">
       <Filter>Header Files\tests</Filter>
     </ClInclude>
@@ -113,14 +116,20 @@
     <ClInclude Include="TestFC.h">
       <Filter>Header Files\tests</Filter>
     </ClInclude>
-    <ClInclude Include="FC.h">
-      <Filter>Source Files\layers</Filter>
-    </ClInclude>
     <ClInclude Include="TestSoftmax.h">
       <Filter>Header Files\tests</Filter>
     </ClInclude>
     <ClInclude Include="Softmax.h">
       <Filter>Header Files\layers</Filter>
+    </ClInclude>
+    <ClInclude Include="FC.h">
+      <Filter>Header Files\layers</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils.h">
+      <Filter>Header Files\core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

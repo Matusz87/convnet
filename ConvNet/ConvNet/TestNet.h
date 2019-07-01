@@ -10,5 +10,7 @@ public:
 	bool TrainMNISTdigit();
 	bool TrainSignFC();
 	bool TrainSignCE();
+	bool TrainSignCE2();
+	bool TrainSignSimple();
 	bool TrainSign();
 };

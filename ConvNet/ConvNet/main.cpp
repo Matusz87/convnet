@@ -29,7 +29,7 @@ int main(int argc, char** argv)
 	//testNet.TrainMNISTdigit();
 	//testNet.TrainSignFC();
 	//testNet.TrainSign();
-	testNet.TrainSignCE();
+	testNet.TrainSignCE2();
 
 	TestTensor t;
 	/*t.TestInitZeros();
@@ -45,6 +45,7 @@ int main(int argc, char** argv)
 	//testConv.TestForward();
 	//testConv.TestForward3();
 	//testConv.TestBackprop();
+	//testConv.TestBackprop2();
 	//testConv.TestBackpropPadded();
 	/*testConv.TestForward3();	
 	testConv.TestForwardDeep();

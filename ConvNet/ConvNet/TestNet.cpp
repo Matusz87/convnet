@@ -1,6 +1,9 @@
 #include "TestNet.h"
 
+#include <algorithm>
 #include <iostream>
+#include <ctime>
+#include <cstdlib>
 #include "Utils.h"
 #include "tensor3D.h"
 #include "Layer.h"
@@ -370,7 +373,7 @@ bool TestNet::TrainSignFC() {
 
 	Tensor3D<double> dW, db;
 
-	double lr = 0.001;
+	double lr = 0.01;
 	for (int i = 0; i < 50; ++i) {
 		fc.Forward(fc.GetInput());
 		/*utils::PrintLayerShapes(fc);
@@ -422,106 +425,200 @@ bool TestNet::TrainSignFC() {
 bool TestNet::TrainSignCE() {
 	std::cout << "TestNet::TrainSignCE" << std::endl;
 	std::vector<Tensor3D<double>> X;
-	std::vector<Tensor3D<double>> Y;
-
+	
 	Tensor3D<double> input = utils::CreateTensorFromImage("../../../datasets/traffic_signs/train-52x52/1/1_0000.bmp");
 	X.push_back(input);
-	input = utils::CreateTensorFromImage("../../../datasets/traffic_signs/train-52x52/1/1_0001.bmp");
-	X.push_back(input);
-	input = utils::CreateTensorFromImage("../../../datasets/traffic_signs/train-52x52/1/1_0002.bmp");
-	X.push_back(input);
-	input = utils::CreateTensorFromImage("../../../datasets/traffic_signs/train-52x52/2/2_0000.bmp");
-	X.push_back(input);
-	input = utils::CreateTensorFromImage("../../../datasets/traffic_signs/train-52x52/2/2_0001.bmp");
-	X.push_back(input);
-	input = utils::CreateTensorFromImage("../../../datasets/traffic_signs/train-52x52/2/2_0001.bmp");
-	X.push_back(input);
-	//X.push_back(utils::CreateTensorFromImage(""));
-//	X.push_back(utils::CreateTensorFromImage("../../../datasets/traffic_signs/1_0000.bmp"));	
 	
-	std::vector<int> vec_t({ 1,0,0,0,0,0,0,0,0,0 });
-//	Tensor3D<double> target = utils::CreateTensorFromVec(vec_t, 10, 1);
-	Y.push_back(utils::CreateTensorFromVec(vec_t, 10, 1));
-	Y.push_back(utils::CreateTensorFromVec(vec_t, 10, 1));
-	Y.push_back(utils::CreateTensorFromVec(vec_t, 10, 1));
-	vec_t = std::vector<int>( { 0,1,0,0,0,0,0,0,0,0 } );
-	Y.push_back(utils::CreateTensorFromVec(vec_t, 10, 1));
-	Y.push_back(utils::CreateTensorFromVec(vec_t, 10, 1));
-	Y.push_back(utils::CreateTensorFromVec(vec_t, 10, 1));
-
 	// Gradient w.r.t error.
-	Tensor3D<double> d_out(10, 1, 1);
+	Tensor3D<double> d_out(6, 1, 1);
 
-	layer::Conv conv(input, "conv", 32, 3, 1, 0);
+	layer::Conv conv(input, "conv", 4, 3, 1, 0);
 	utils::PrintLayerShapes(conv);
-	layer::ReLU relu("relu", 50, 50, 32);
+	layer::ReLU relu("relu", 50, 50, 4);
 	utils::PrintLayerShapes(relu);
-	layer::MaxPool pool("pool", 50, 50, 32, 2, 2);
+	layer::MaxPool pool("pool", 50, 50, 4, 2, 2);
 	utils::PrintLayerShapes(pool);
-	layer::FC fc("fc", 25*25*32, 10);
+	layer::FC fc("fc", 25*25*4, 128);
 	utils::PrintLayerShapes(fc);
-	layer::Softmax softmax("softmax", 10, 1, 1);
+	layer::ReLU relu_2("relu_2", 128, 1, 1);
+	utils::PrintLayerShapes(relu);
+	layer::FC fc_2("fc_2", 128, 6);
+	utils::PrintLayerShapes(fc_2);
+	layer::Softmax softmax("softmax", 6, 1, 1);
 
 	Tensor3D<double> dW, db, target;
+	utils::Dataset trainingSet = utils::GetTrainingSet();
 
-	double lr = 0.001;
-	for (int epoch = 0; epoch < 3; ++epoch) {
-		for (int m = 0; m < X.size(); ++m) {
-			input = X[m];
-			target = Y[m];
+	double lr = 0.003;
+	double cum_loss = 0;
+	int correct = 0;
+	for (int epoch = 1; epoch <= 50; ++epoch) {
+		std::srand(unsigned(std::time(0)));
+		std::random_shuffle(trainingSet.begin(), trainingSet.end());
 
+		cum_loss = 0;
+		correct = 0;
+		for (int m = 0; m < trainingSet.size(); ++m) {
+			//std::cout << "Training sample " << m << std::endl;
+			input = trainingSet[m].first;
+			target = trainingSet[m].second;
+			
 			conv.Forward(input);
 			relu.Forward(conv.GetOutput());
 			pool.Forward(relu.GetOutput());
 			fc.Forward(pool.GetOutput().Flatten());
-			softmax.Forward(fc.GetOutput());
+			relu_2.Forward(fc.GetOutput());
+			fc_2.Forward(relu_2.GetOutput());
+			softmax.Forward(fc_2.GetOutput());
 
-			std::cout << std::endl << "Forward: " << m << std::endl;
-			convnet_core::PrintTensor(softmax.GetOutput());
+			if (epoch % 5 == 0) {
+				/*std::cout << "Forward: " << m << std::endl;
+				convnet_core::PrintTensor(softmax.GetOutput());*/
+				if (utils::ComparePrediction(softmax.GetOutput(), target))
+					++correct;				
+			}
 
 			// Calculate grads w.r.t loss function.
 			// Loss function is Mean Absolute Error.
 			d_out.InitZeros();
 			d_out = (softmax.GetOutput() - target);
+//			d_out = (fc.GetOutput() - target);
 
 			// Derivative of loss function.
-			//d_out = d_out.Sign();
+//			d_out = d_out.Sign();
 
-			std::cout << "Loss: " << softmax.Loss(target) << std::endl;
+			cum_loss += softmax.Loss(target);
 
 			softmax.Backprop(d_out);
-			fc.Backprop(softmax.GetGrads());
+			fc_2.Backprop(softmax.GetGrads());
+			relu_2.Backprop(fc_2.GetGrads());
+			fc.Backprop(relu_2.GetGrads());
+//			fc.Backprop(d_out);
 			pool.Backprop(fc.GetGrads().Reshape(pool.GetOutputShape()));
 			relu.Backprop(pool.GetGrads());
 			conv.Backprop(relu.GetGrads());
 
 			// Update weights.
-			dW = fc.GetGradWeights();
-			dW = dW * lr;
-			fc.GetWeights() = fc.GetWeights() - dW;
-			db = fc.GetGradBias();
-			db = db * lr;
-			fc.GetBias() = fc.GetBias() - db;
+			fc_2.UpdateWeights(lr);
+			fc.UpdateWeights(lr);
 
 			// Conv layer update
-			for (int i = 0; i < conv.GetGradWeights().size(); ++i) {
-				dW = conv.GetGradWeights()[i];
-				dW = dW * lr;
-				conv.GetWeights()[i] = conv.GetWeights()[i] - dW;
-			}
-
-			for (int i = 0; i < conv.GetBias().size(); ++i) {
-				db = conv.GetGradBias()[i];
-				db = db * lr;
-				conv.GetBias()[i] = conv.GetBias()[i] - db;
-			}
+			conv.UpdateWeights(lr);
 		}
-
+		
+		std::cout << std::endl;
 		std::cout << "Epoch " << epoch << " is done. " << std::endl;
+		std::cout << "Loss: " << cum_loss / (double)X.size() << std::endl << std::endl;
+		if (epoch %5 == 0)
+			std::cout << "Training accuracy: " << correct / (double)trainingSet.size() << std::endl;
 	}
+
+	std::cout << std::endl << "FC2 output" << std::endl;
+	convnet_core::PrintTensor(fc_2.GetOutput());
 
 	return true;
 }
+
+bool TestNet::TrainSignCE2() {
+	std::cout << "TestNet::TrainSignCE2x2" << std::endl;
+	std::vector<Tensor3D<double>> X;
+
+	Tensor3D<double> input = utils::CreateTensorFromImage("../../../datasets/traffic_signs/train-52x52/1/1_0000.bmp");
+	X.push_back(input);
+
+	// Gradient w.r.t error.
+	Tensor3D<double> d_out(6, 1, 1);
+
+	layer::MaxPool pool_0(input, "pool_0", 2, 2);
+	utils::PrintLayerShapes(pool_0);
+	layer::Conv conv(26, 26, 3, "conv", 12, 3, 1, 0);
+	utils::PrintLayerShapes(conv);
+	layer::ReLU relu("relu", 24, 24, 12);
+	utils::PrintLayerShapes(relu);
+	layer::MaxPool pool("pool", 24, 24, 12, 2, 2);
+	utils::PrintLayerShapes(pool);
+	layer::FC fc("fc", 12 * 12 * 12, 64);
+	utils::PrintLayerShapes(fc);
+	layer::ReLU relu_2("relu_2", 64, 1, 1);
+	utils::PrintLayerShapes(relu_2);
+	layer::FC fc_2("fc_2", 64, 12);
+	utils::PrintLayerShapes(fc_2);
+	layer::Softmax softmax("softmax", 12, 1, 1);
+
+	Tensor3D<double> dW, db, target;
+	utils::Dataset trainingSet = utils::GetTrainingSet();
+
+	double lr = 0.0005;
+	double cum_loss = 0;
+	int correct = 0;
+	for (int epoch = 1; epoch <= 50; ++epoch) {
+		std::srand(unsigned(std::time(0)));
+		std::random_shuffle(trainingSet.begin(), trainingSet.end());
+
+		cum_loss = 0;
+		correct = 0;
+		for (int m = 0; m < trainingSet.size(); ++m) {
+			//std::cout << "Training sample " << m << std::endl;
+			input = trainingSet[m].first;
+			target = trainingSet[m].second;
+
+			pool_0.Forward(input);
+			conv.Forward(pool_0.GetOutput());
+			relu.Forward(conv.GetOutput());
+			pool.Forward(relu.GetOutput());
+			fc.Forward(pool.GetOutput().Flatten());
+			relu_2.Forward(fc.GetOutput());
+			fc_2.Forward(relu_2.GetOutput());
+			softmax.Forward(fc_2.GetOutput());
+
+			if (epoch % 5 == 0) {
+				/*std::cout << "Forward: " << m << std::endl;
+				convnet_core::PrintTensor(softmax.GetOutput());*/
+				if (utils::ComparePrediction(softmax.GetOutput(), target))
+					++correct;
+			}
+
+			// Calculate grads w.r.t loss function.
+			// Loss function is Mean Absolute Error.
+			d_out.InitZeros();
+			d_out = (softmax.GetOutput() - target);
+			//			d_out = (fc.GetOutput() - target);
+
+			// Derivative of loss function.
+			//			d_out = d_out.Sign();
+
+			cum_loss += softmax.Loss(target);
+
+			softmax.Backprop(d_out);
+			fc_2.Backprop(softmax.GetGrads());
+			relu_2.Backprop(fc_2.GetGrads());
+			fc.Backprop(relu_2.GetGrads());
+			//			fc.Backprop(d_out);
+			pool.Backprop(fc.GetGrads().Reshape(pool.GetOutputShape()));
+			relu.Backprop(pool.GetGrads());
+			conv.Backprop(relu.GetGrads());
+
+			// Update weights.
+			fc_2.UpdateWeights(lr);
+			fc.UpdateWeights(lr);
+
+			// Conv layer update
+			conv.UpdateWeights(lr);
+		}
+
+		std::cout << std::endl;
+		std::cout << "Epoch " << epoch << " is done. " << std::endl;
+		std::cout << "Loss: " << cum_loss / (double)X.size() << std::endl << std::endl;
+		if (epoch % 5 == 0)
+			std::cout << "Training accuracy: " << correct / (double)trainingSet.size() << std::endl;
+	}
+
+	std::cout << std::endl << "FC2 output" << std::endl;
+	convnet_core::PrintTensor(fc_2.GetOutput());
+
+	return true;
+}
+
 
 bool TestNet::TrainSign() {
 	std::cout << "TestNet::TrainSign" << std::endl;

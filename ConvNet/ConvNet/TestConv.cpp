@@ -310,6 +310,70 @@ bool TestConv::TestBackprop() {
 	return true;
 }
 
+bool TestConv::TestBackprop2() {
+	std::cout << "TestConv::TestBackprop2" << std::endl;
+
+	std::vector<int> vec({ 1,0,1,0,1,1,0,1,0,1,1,0,1,0,0,1});
+	Tensor3D<double> input = utils::CreateTensorFromVec(vec, 4, 4);
+
+	std::vector<int> vec2({ 1,0,0,1 });
+	Tensor3D<double> filter = utils::CreateTensorFromVec(vec2, 2, 2);
+
+	std::vector<int> vec_f2({ 1,1,0,0 });
+	Tensor3D<double> filter2 = utils::CreateTensorFromVec(vec_f2, 2, 2);
+
+	std::vector<int> vec_e({ 1,1,2,-1 });
+	//std::vector<int> vec4({ 1,0,1,5 });
+	Tensor3D<double> d_out = utils::CreateTensorFromVec(vec_e, 2, 2);
+
+	std::vector<int> vec4({ 3,2,1,2 });
+	//std::vector<int> vec4({ 1,0,1,5 });
+	Tensor3D<double> target = utils::CreateTensorFromVec(vec4, 2, 2);
+
+	int f_count = 1; int f_size = 2;
+	int stride = 1; int padding = 0;
+	layer::Conv conv(input, "conv_1", f_count, f_size, stride, padding);
+	utils::PrintLayerShapes(conv);
+	std::cout << conv.GetWeights()[0].GetShape().depth << std::endl;
+
+	conv.GetWeights()[0] = filter;
+	std::cout << "Weights: " << std::endl;
+	convnet_core::PrintTensor(conv.GetWeights()[0]);
+
+	conv.Forward(conv.GetInput());
+	std::cout << "Convolved: " << std::endl;
+	convnet_core::PrintTensor(conv.GetOutput());
+
+	std::cout << "Error: " << std::endl;
+	convnet_core::PrintTensor(d_out);
+	std::cout << "Loss: " << d_out.Sum() << std::endl;
+
+	layer::Conv conv2(conv.GetOutput(), "conv_2", f_count, f_size, stride, padding);
+	utils::PrintLayerShapes(conv);
+	std::cout << conv.GetWeights()[0].GetShape().depth << std::endl;
+	conv2.GetWeights()[0] = filter2;
+	conv2.Forward(conv2.GetInput());
+	std::cout << "Convolved2: " << std::endl;
+	convnet_core::PrintTensor(conv2.GetOutput());
+
+
+	conv2.Backprop(d_out);
+	conv.Backprop(conv2.GetGrads());
+	std::cout << "Grads w.r.t weight (conv_2): " << std::endl;
+	convnet_core::PrintTensor(conv2.GetGradWeights()[0]);
+
+	std::cout << "Grads w.r.t input (conv_2): " << std::endl;
+	convnet_core::PrintTensor(conv2.GetGradInput());
+
+	std::cout << "Grads w.r.t weight (conv): " << std::endl;
+	convnet_core::PrintTensor(conv.GetGradWeights()[0]);
+
+	std::cout << "Grads w.r.t input (conv): " << std::endl;
+	convnet_core::PrintTensor(conv.GetGradInput());
+
+	return true;
+}
+
 bool TestConv::TestBackpropPadded() {
 	std::cout << "TestConv::TestBackpropPadded" << std::endl;
 

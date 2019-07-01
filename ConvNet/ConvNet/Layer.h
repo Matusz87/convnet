@@ -24,6 +24,7 @@ namespace layer {
 
 		virtual void Forward(Tensor3D<double> prev_activation) = 0;
 		virtual void Backprop(Tensor3D<double> grad_output) = 0;
+		virtual void UpdateWeights(double learning_rate) = 0;
 
 	protected:
 		Tensor3D<double> input;
