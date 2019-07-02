@@ -21,6 +21,7 @@ namespace layer {
 		convnet_core::Triplet GetInputShape();
 		convnet_core::Triplet GetOutputShape();
 		convnet_core::Triplet GetGradsShape();
+		std::string GetName();
 
 		virtual void Forward(Tensor3D<double> prev_activation) = 0;
 		virtual void Backprop(Tensor3D<double> grad_output) = 0;

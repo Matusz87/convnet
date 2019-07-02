@@ -17,6 +17,9 @@ namespace layer {
 		void Backprop(Tensor3D<double> grad_output) override;
 		void UpdateWeights(double learning_rate, double momentum = 0.9) override;
 
+		int GetPoolSize();
+		int GetStride();
+
 	private:
 		int stride;
 		int pool_size;

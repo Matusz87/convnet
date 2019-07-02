@@ -1,0 +1,7 @@
+{
+    "depth": 8,
+    "height": 10,
+    "name": "relu_1",
+    "type": "relu",
+    "width": 10
+}

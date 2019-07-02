@@ -2,8 +2,11 @@
 
 #include <algorithm>
 #include <iostream>
+#include <fstream>  
 #include <ctime>
 #include <cstdlib>
+#include <iomanip>
+
 #include "Utils.h"
 #include "tensor3D.h"
 #include "Layer.h"
@@ -451,12 +454,15 @@ bool TestNet::TrainSignCE() {
 
 	double lr = 0.003;
 	double cum_loss = 0;
+	double cum_loss_valid = 0;
 	int correct = 0;
 	for (int epoch = 1; epoch <= 50; ++epoch) {
 		std::srand(unsigned(std::time(0)));
 		std::random_shuffle(trainingSet.begin(), trainingSet.end());
 
 		cum_loss = 0;
+		cum_loss_valid = 0;
+		
 		correct = 0;
 		for (int m = 0; m < trainingSet.size(); ++m) {
 			//std::cout << "Training sample " << m << std::endl;
@@ -508,7 +514,7 @@ bool TestNet::TrainSignCE() {
 		
 		std::cout << std::endl;
 		std::cout << "Epoch " << epoch << " is done. " << std::endl;
-		std::cout << "Loss: " << cum_loss / (double)X.size() << std::endl << std::endl;
+		std::cout << "Training loss: " << cum_loss / (double)X.size() << std::endl << std::endl;
 		if (epoch %5 == 0)
 			std::cout << "Training accuracy: " << correct / (double)trainingSet.size() << std::endl;
 	}
@@ -530,40 +536,57 @@ bool TestNet::TrainSignCE2() {
 	Tensor3D<double> d_out(6, 1, 1);
 
 	layer::MaxPool pool_0(input, "pool_0", 2, 2);
+	pool_0 = utils::ReadPoolLayer("models/pool_0.json");
 	utils::PrintLayerShapes(pool_0);
 	layer::Conv conv(26, 26, 3, "conv", 12, 3, 1, 0);
+	conv = utils::ReadConvLayer("models/conv-3.json");
 	utils::PrintLayerShapes(conv);
 	layer::ReLU relu("relu", 24, 24, 12);
+	relu = utils::ReadReLU("models/relu.json");
 	utils::PrintLayerShapes(relu);
 	layer::MaxPool pool("pool", 24, 24, 12, 2, 2);
+	pool = utils::ReadPoolLayer("models/pool.json");
 	utils::PrintLayerShapes(pool);
-layer::Conv conv_2(12, 12, 12, "conv_2", 8, 3, 1, 0);
-utils::PrintLayerShapes(conv_2);
-layer::ReLU relu_1("relu_1", 10, 10, 8);
+	layer::Conv conv_2(12, 12, 12, "conv_2", 8, 3, 1, 0);
+	conv_2 = utils::ReadConvLayer("models/conv_2-3.json");
+	utils::PrintLayerShapes(conv_2);
+	layer::ReLU relu_1("relu_1", 10, 10, 8);
+	relu_1 = utils::ReadReLU("models/relu_1.json");
 	utils::PrintLayerShapes(relu_1);
 	//layer::FC fc("fc", 12 * 12 * 12, 64);
 	layer::FC fc("fc", 10 * 10 * 8, 64);
+	fc = utils::ReadFCLayer("models/fc-3.json");
 	utils::PrintLayerShapes(fc);
 	layer::ReLU relu_2("relu_2", 64, 1, 1);
+	relu_2 = utils::ReadReLU("models/relu_2.json");
 	utils::PrintLayerShapes(relu_2);
 	layer::FC fc_2("fc_2", 64, 12);
 	utils::PrintLayerShapes(fc_2);
+	fc_2 = utils::ReadFCLayer("models/fc_2-3.json");
 	layer::Softmax softmax("softmax", 12, 1, 1);
+	softmax = utils::ReadSoftmax("models/softmax.json");
 
 	Tensor3D<double> dW, db, target;
 	utils::Dataset trainingSet = utils::GetTrainingSet();
-
-	double lr = 0.0005;
+	utils::Dataset validSet = utils::GetValidationSet();
+		
+	double lr = 0.0001;
 	double cum_loss = 0;
+	double cum_loss_valid = 0;
 	int correct = 0;
 	for (int epoch = 1; epoch <= 50; ++epoch) {
+		std::cout << "Epoch " << epoch << std::endl;
 		std::srand(unsigned(std::time(0)));
 		std::random_shuffle(trainingSet.begin(), trainingSet.end());
 
 		cum_loss = 0;
+		cum_loss_valid = 0;
 		correct = 0;
 		for (int m = 0; m < trainingSet.size(); ++m) {
-			//std::cout << "Training sample " << m << std::endl;
+			if (m % 50 == 0) {
+				std::cout << "... (" << m << "/" << trainingSet.size() << ")";
+			}
+				
 			input = trainingSet[m].first;
 			target = trainingSet[m].second;
 
@@ -571,20 +594,16 @@ layer::ReLU relu_1("relu_1", 10, 10, 8);
 			conv.Forward(pool_0.GetOutput());
 			relu.Forward(conv.GetOutput());
 			pool.Forward(relu.GetOutput());
-conv_2.Forward(pool.GetOutput());
-relu_1.Forward(conv_2.GetOutput());
-//			fc.Forward(pool.GetOutput().Flatten());
-fc.Forward(relu_1.GetOutput().Flatten());
+			conv_2.Forward(pool.GetOutput());
+			relu_1.Forward(conv_2.GetOutput());
+			fc.Forward(relu_1.GetOutput().Flatten());
 			relu_2.Forward(fc.GetOutput());
 			fc_2.Forward(relu_2.GetOutput());
 			softmax.Forward(fc_2.GetOutput());
 
-			if (epoch % 5 == 0) {
-				/*std::cout << "Forward: " << m << std::endl;
-				convnet_core::PrintTensor(softmax.GetOutput());*/
-				if (utils::ComparePrediction(softmax.GetOutput(), target))
-					++correct;
-			}
+
+			if (utils::ComparePrediction(softmax.GetOutput(), target))
+				++correct;
 
 			// Calculate grads w.r.t loss function.
 			// Loss function is Mean Absolute Error.
@@ -617,15 +636,45 @@ fc.Forward(relu_1.GetOutput().Flatten());
 			conv.UpdateWeights(lr);
 		}
 
+		if (epoch % 7 == 0) {
+			utils::WriteConvLayer(conv, "models/conv-" + std::to_string(epoch) + ".json");
+			utils::WriteConvLayer(conv_2, "models/conv_2-" + std::to_string(epoch) + ".json");
+			utils::WriteFCLayer(fc, "models/fc-" + std::to_string(epoch) + ".json");
+			utils::WriteFCLayer(fc_2, "models/fc_2-" + std::to_string(epoch) + ".json");
+		}
+
 		std::cout << std::endl;
 		std::cout << "Epoch " << epoch << " is done. " << std::endl;
-		std::cout << "Loss: " << cum_loss / (double)X.size() << std::endl << std::endl;
-		if (epoch % 5 == 0)
-			std::cout << "Training accuracy: " << correct / (double)trainingSet.size() << std::endl;
-	}
+		std::cout << "Trainin loss: " << cum_loss / (double)trainingSet.size() << std::endl;
+		std::cout << "Training accuracy: " << correct / (double)trainingSet.size() << std::endl;
+		// Calculate validation loss
+		correct = 0;
+		for (int m = 0; m < validSet.size(); ++m) {
+			input = validSet[m].first;
+			target = validSet[m].second;
 
-	std::cout << std::endl << "FC2 output" << std::endl;
-	convnet_core::PrintTensor(fc_2.GetOutput());
+			pool_0.Forward(input);
+			conv.Forward(pool_0.GetOutput());
+			relu.Forward(conv.GetOutput());
+			pool.Forward(relu.GetOutput());
+			conv_2.Forward(pool.GetOutput());
+			relu_1.Forward(conv_2.GetOutput());
+			//			fc.Forward(pool.GetOutput().Flatten());
+			fc.Forward(relu_1.GetOutput().Flatten());
+			relu_2.Forward(fc.GetOutput());
+			fc_2.Forward(relu_2.GetOutput());
+			softmax.Forward(fc_2.GetOutput());
+
+			cum_loss_valid += softmax.Loss(target);
+
+			if (utils::ComparePrediction(softmax.GetOutput(), target)) 
+				++correct;
+					
+		}
+
+		std::cout << "Validation loss: " << cum_loss_valid / (double)validSet.size() << std::endl;
+		std::cout << "Validation accuracy: " << correct / (double)validSet.size() << std::endl << std::endl;
+	}
 
 	return true;
 }
@@ -706,3 +755,4 @@ bool TestNet::TrainSign() {
 
 	return true;
 }
+

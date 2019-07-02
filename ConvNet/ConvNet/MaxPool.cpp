@@ -104,4 +104,10 @@ namespace layer {
 	}
 
 	void MaxPool::UpdateWeights(double lr, double momentum) { }
+	int MaxPool::GetPoolSize() {
+		return pool_size;
+	}
+	int MaxPool::GetStride() {
+		return stride;
+	}
 }

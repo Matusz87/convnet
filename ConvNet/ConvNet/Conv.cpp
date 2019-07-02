@@ -17,6 +17,8 @@ namespace layer {
 		int out_width = ((width - f_size + 2 * padding) / stride) + 1;
 		output = Tensor3D<double>(out_height, out_width, f_count);
 
+		this->name = name;
+
 		// Init variables.
 		InitWeights();
 		InitBias();
@@ -307,6 +309,22 @@ namespace layer {
 		}
 
 		return padded;
+	}
+
+	int Conv::GetFilterCount() {
+		return filter_count;
+	}
+
+	int Conv::GetFilterSize() {
+		return filter_size;
+	}
+
+	int Conv::GetStride() {
+		return stride;
+	}
+
+	int Conv::GetPadding() {
+		return padding;
 	}
 
 	Tensor3D<double> Conv::Unpad(Tensor3D<double> padded) {

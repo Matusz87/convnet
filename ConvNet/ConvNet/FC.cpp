@@ -95,8 +95,7 @@ namespace layer {
 		return weights;
 	}
 
-	Tensor3D<double>& FC::GetBias()
-	{
+	Tensor3D<double>& FC::GetBias() {
 		return bias;
 	}
 

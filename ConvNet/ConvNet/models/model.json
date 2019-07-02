@@ -1,0 +1,13 @@
+{
+    "layer1": {
+        "depth": 3,
+        "f_count": 2,
+        "f_size": 2,
+        "height": 10,
+        "name": "conv_0",
+        "padding": 0,
+        "stride": 1,
+        "type": "conv",
+        "width": 10
+    }
+}

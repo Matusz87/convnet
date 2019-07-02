@@ -13,4 +13,5 @@ public:
 	bool TrainSignCE2();
 	bool TrainSignSimple();
 	bool TrainSign();
+	void TestJSON();
 };

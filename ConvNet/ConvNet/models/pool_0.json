@@ -1,0 +1,9 @@
+{
+    "depth": 3,
+    "height": 52,
+    "name": "pool_0",
+    "p_size": 2,
+    "stride": 2,
+    "type": "pool",
+    "width": 52
+}

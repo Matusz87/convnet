@@ -272,15 +272,10 @@ namespace convnet_core {
 		std::random_device rd;
 		std::mt19937 generator(rd());
 
-//		double const distributionRangeHalfWidth = (2.4 / m_numInputs);
-//		double const standardDeviation = distributionRangeHalfWidth * 2 / 6;
-
 		// He initialization.
 		double n = shape.height*shape.width*shape.depth;
 		double const standard_dev = std::sqrt(2.0 / n);
 		std::normal_distribution<> normalDistribution(0, standard_dev);
-//		n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-//		m.weight.data.normal_(0, math.sqrt(2. / n))
 
 		for (int i = 0; i < shape.height; ++i)
 			for (int j = 0; j < shape.width; ++j)

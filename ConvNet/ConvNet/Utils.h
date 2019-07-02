@@ -1,11 +1,19 @@
 #pragma once
 #include <iostream>
+#include <fstream>
+#include <iomanip>
 #include <algorithm>
 
 #include "tensor3D.h"
 #include "Layer.h"
+#include "Conv.h"
+#include "FC.h"
+#include "MaxPool.h"
+#include "Softmax.h"
+#include "ReLU.h"
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgcodecs.hpp>
+#include <nlohmann/json.hpp>
 
 namespace utils {
 	typedef std::vector<std::pair<Tensor3D<double>, Tensor3D<double>>> Dataset;
@@ -80,13 +88,20 @@ namespace utils {
 			target = Tensor3D<double>(12, 1, 1);
 			target.InitZeros();
 			target(i, 0, 0) = 1;
-			for (int j = 0; j < 9; ++j) {
+			for (int j = 0; j < 50; ++j) {
 				path_dir = "../../../datasets/traffic_signs/train-52x52/";
-				path_dir.append((std::to_string(i + 1)))
+				if (j < 10) {
+					path_dir.append((std::to_string(i + 1)))
+						.append("/").append(std::to_string((i + 1)))
+						.append("_000").append(std::to_string(j))
+						.append(".bmp");
+				}  else {
+					path_dir.append((std::to_string(i + 1)))
 					.append("/").append(std::to_string((i + 1)))
-					.append("_000").append(std::to_string(j))
+					.append("_00").append(std::to_string(j))
 					.append(".bmp");
-
+				}
+//std::cout << path_dir << std::endl;
 				X = utils::CreateTensorFromImage(path_dir);
 				dataset.push_back(std::pair<Tensor3D<double>, Tensor3D<double>>(X, target));
 			}
@@ -101,17 +116,25 @@ namespace utils {
 		std::string path_dir = "../../../datasets/traffic_signs/train-52x52/";
 		Tensor3D<double> X, target;
 
-		for (int i = 0; i < 2; ++i) {
-			target = Tensor3D<double>(3, 1, 1);
+		for (int i = 0; i < 12; ++i) {
+			target = Tensor3D<double>(12, 1, 1);
 			target.InitZeros();
 			target(i, 0, 0) = 1;
-			for (int j = 0; j < 9; ++j) {
+			for (int j = 0; j < 10; ++j) {
 				path_dir = "../../../datasets/traffic_signs/train-52x52/";
-				path_dir.append((std::to_string(i + 1)))
-					.append("/").append(std::to_string((i + 1)))
-					.append("_100").append(std::to_string(j))
-					.append(".bmp");
-
+				if (j < 10) {
+					path_dir.append((std::to_string(i + 1)))
+						.append("/").append(std::to_string((i + 1)))
+						.append("_400").append(std::to_string(j))
+						.append(".bmp");
+				}
+				else {
+					path_dir.append((std::to_string(i + 1)))
+						.append("/").append(std::to_string((i + 1)))
+						.append("_40").append(std::to_string(j))
+						.append(".bmp");
+				}
+//				std::cout << path_dir << std::endl;
 				X = utils::CreateTensorFromImage(path_dir);
 				dataset.push_back(std::pair<Tensor3D<double>, Tensor3D<double>>(X, target));
 			}
@@ -137,8 +160,200 @@ namespace utils {
 		}
 
 		/*std::cout << "Predicted index: " << pred_index
-				  << ", target index: " << target_index << std::endl;
-*/
+				  << ", target index: " << target_index << std::endl;*/
+
 		return (pred_index == target_index);
+	}
+
+	static void WritePoolLayer(layer::MaxPool pool, std::string path) {
+		std::ofstream o(path);
+		nlohmann::json layer;
+		
+		layer["type"] = "pool";
+		layer["name"] = pool.GetName();
+		layer["height"] = pool.GetInputShape().height;
+		layer["width"] = pool.GetInputShape().width;
+		layer["depth"] = pool.GetInputShape().depth;
+		layer["p_size"] = pool.GetPoolSize();
+		layer["stride"] = pool.GetStride();;
+		
+		o << std::setw(4) << layer;
+	}
+
+	static layer::MaxPool ReadPoolLayer(std::string path) {
+		std::ifstream i(path);
+		nlohmann::json layer;
+		i >> layer;
+
+		layer::MaxPool pool = layer::MaxPool(layer["name"], layer["height"],
+			layer["width"], layer["depth"], layer["stride"], layer["p_size"]);
+
+		return pool;
+	}
+
+	static void WriteReLU(layer::ReLU relu, std::string path) {
+		std::ofstream o(path);
+		nlohmann::json layer;
+
+		layer["type"] = "relu";
+		layer["name"] = relu.GetName();
+		layer["height"] = relu.GetInputShape().height;
+		layer["width"] = relu.GetInputShape().width;
+		layer["depth"] = relu.GetInputShape().depth;
+
+		o << std::setw(4) << layer;
+	}
+
+	static layer::ReLU ReadReLU(std::string path) {
+		std::ifstream i(path);
+		nlohmann::json layer;
+		i >> layer;
+
+		layer::ReLU relu = layer::ReLU(layer["name"], layer["height"],
+											 layer["width"], layer["depth"]);
+
+		return relu;
+	}
+
+	static void WriteSoftmax(layer::Softmax softmax, std::string path) {
+		std::ofstream o(path);
+		nlohmann::json layer;
+
+		layer["type"] = "softmax";
+		layer["name"] = softmax.GetName();
+		layer["height"] = softmax.GetInputShape().height;
+		
+		o << std::setw(4) << layer;
+	}
+
+	static layer::Softmax ReadSoftmax(std::string path) {
+		std::ifstream i(path);
+		nlohmann::json layer;
+		i >> layer;
+
+		layer::Softmax softmax = layer::Softmax(layer["name"], layer["height"], 1, 1);
+
+		return softmax;
+	}
+
+	static void WriteConvLayer(layer::Conv conv, std::string path) {
+		std::ofstream o(path);
+		nlohmann::json layer;
+		nlohmann::json weights;
+		nlohmann::json bias;
+
+		layer["type"] = "conv";
+		layer["name"] = conv.GetName();
+		layer["height"] = conv.GetInputShape().height;
+		layer["width"] = conv.GetInputShape().width;
+		layer["depth"] = conv.GetInputShape().depth;
+		layer["f_count"] = conv.GetFilterCount();
+		layer["f_size"] = conv.GetFilterSize();
+		layer["stride"] = conv.GetStride();;
+		layer["padding"] = conv.GetPadding();;
+
+		for (int filter = 0; filter < conv.GetWeights().size(); ++filter) {
+			nlohmann::json weight;
+			for (int d = 0; d<conv.GetWeights()[filter].GetShape().depth; ++d)
+				for (int h=0; h<conv.GetWeights()[filter].GetShape().height; ++h)
+					for (int w = 0; w<conv.GetWeights()[filter].GetShape().width; ++w)					
+						weight.push_back(conv.GetWeights()[filter](h,w,d));
+			
+			weights[std::to_string(filter)] = weight;
+			bias.push_back(conv.GetBias()[filter](0, 0, 0));
+		}
+		layer["weights"] = weights;
+		layer["bias"] = bias;
+
+		o << std::setw(4) << layer;
+	}
+
+	static layer::Conv ReadConvLayer(std::string path) {
+		std::ifstream i(path);
+		nlohmann::json layer;
+		i >> layer;
+		
+		layer::Conv conv = layer::Conv(layer["height"], layer["width"],
+									   layer["depth"], layer["name"], 
+									   layer["f_count"], layer["f_size"],
+									   layer["stride"], layer["padding"]);
+
+		int b_ind = 0;
+		for (auto& element : layer["bias"]) {
+			conv.GetBias()[b_ind](0, 0, 0) = element;
+			++b_ind;
+		}
+
+		int filter_size = layer["f_size"];
+		for (nlohmann::json::iterator it = layer["weights"].begin();
+			it != layer["weights"].end(); ++it) {
+			for (int h = 0; h < layer["f_size"]; ++h) {
+				for (int w = 0; w < layer["f_size"]; ++w) {
+					for (int d = 0; d < layer["depth"]; ++d) {
+						conv.GetWeights()[std::stoi(it.key())](h, w, d) =
+							it.value()[
+								d * (filter_size*filter_size) +
+									h * (filter_size)+
+									w
+							];
+					}
+				}
+			}
+		}
+
+		return conv;
+	}
+
+	static void WriteFCLayer(layer::FC fc, std::string path) {
+		std::ofstream o(path);
+		nlohmann::json layer;
+		nlohmann::json weights;
+		nlohmann::json bias;
+
+		layer["type"] = "fc";
+		layer["name"] = fc.GetName();
+		layer["input"] = fc.GetInputShape().height;
+		layer["output"] = fc.GetOutputShape().height;
+
+		for (int inp = 0; inp < fc.GetInputShape().height; ++inp) {
+			nlohmann::json weight;
+			for (int out = 0; out < fc.GetOutputShape().height; ++out)
+				weight.push_back(fc.GetWeights()(inp, out, 0));
+
+			weights[std::to_string(inp)] = weight;
+		}
+		for (int out = 0; out<fc.GetOutputShape().height; ++out)
+			bias.push_back(fc.GetBias()(out, 0, 0));
+
+		layer["weights"] = weights;
+		layer["bias"] = bias;
+
+		o << std::setw(4) << layer;
+	}
+
+	static layer::FC ReadFCLayer(std::string path) {
+		std::ifstream i(path);
+		nlohmann::json layer;
+		i >> layer;
+
+		layer::FC fc = layer::FC(layer["name"], layer["input"], layer["output"]);
+
+		int b_ind = 0;
+		for (auto& element : layer["bias"]) {
+			fc.GetBias()(b_ind, 0, 0) = element;
+			++b_ind;
+		}
+		
+		for (nlohmann::json::iterator it = layer["weights"].begin(); 
+			it != layer["weights"].end(); ++it) {
+			
+			int i = 0;
+			for (auto& element : it.value()) {
+				fc.GetWeights()(std::stoi(it.key()), i, 0) = element;
+				++i;
+			}
+		}
+
+		return fc;
 	}
 }

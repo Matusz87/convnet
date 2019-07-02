@@ -18,7 +18,6 @@ namespace layer {
 		void UpdateWeights(double learning_rate, double momentum = 0.9) override;
 		//Tensor3D<double> ZeroPad(Tensor3D<double> tensor);
 
-		// Only for testing purposes.
 		std::vector<Tensor3D<double>>& GetWeights();
 		std::vector<Tensor3D<double>>& GetBias();
 		std::vector<Tensor3D<double>>& GetGradWeights();
@@ -26,6 +25,13 @@ namespace layer {
 		Tensor3D<double> GetGradInput();
 		Tensor3D<double> Unpad(Tensor3D<double> tensor);
 		Tensor3D<double> ZeroPad(Tensor3D<double> tensor);
+
+		// Getters for serializing.
+		int GetFilterCount();
+		int GetFilterSize();
+		int GetStride();
+		int GetPadding();
+
 	private:
 		// Number of filters of layer (i.e. output depth).
 		int filter_count;

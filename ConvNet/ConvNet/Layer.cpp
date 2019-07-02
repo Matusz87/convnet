@@ -36,4 +36,7 @@ namespace layer {
 	convnet_core::Triplet Layer::GetGradsShape() {
 		return grad_input.GetShape();
 	}
+	std::string Layer::GetName() {
+		return name;
+	}
 }
