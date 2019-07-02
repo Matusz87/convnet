@@ -74,9 +74,18 @@ namespace layer {
 		grad_bias = grad_bias + sum;
 	}
 
+	// Nesterov momentum
+	// http://cs231n.github.io/neural-networks-3/#sgd
 	void FC::UpdateWeights(double lr, double momentum) {
-		velocities = velocities*momentum + grad_weights*lr;
+		Tensor3D<double> v_prev(velocities);
+		velocities = velocities*momentum - (grad_weights*lr);
+		weights = weights - (v_prev*momentum) + v_prev*(1 + momentum);
+		
+		//velocities = velocities*momentum + (grad_weights*lr)*(weights-(velocities*momentum)) ;
+		
+		/*velocities = velocities*momentum + (grad_weights*lr);
 		weights = weights - velocities;
+		*/
 		//weights = weights - grad_weights*lr;
 
 		bias = bias - (grad_bias*lr);

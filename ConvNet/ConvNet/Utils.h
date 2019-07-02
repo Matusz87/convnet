@@ -80,7 +80,7 @@ namespace utils {
 			target = Tensor3D<double>(12, 1, 1);
 			target.InitZeros();
 			target(i, 0, 0) = 1;
-			for (int j = 0; j < 5; ++j) {
+			for (int j = 0; j < 9; ++j) {
 				path_dir = "../../../datasets/traffic_signs/train-52x52/";
 				path_dir.append((std::to_string(i + 1)))
 					.append("/").append(std::to_string((i + 1)))

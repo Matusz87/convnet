@@ -223,9 +223,13 @@ namespace layer {
 
 	void Conv::UpdateWeights(double lr, double momentum) {
 		for (int i = 0; i < grad_weights.size(); ++i) {
-			velocities[i] = velocities[i]*momentum + grad_weights[i]*lr;
+			Tensor3D<double> v_prev(velocities[i]);
+			velocities[i] = velocities[i] *momentum - (grad_weights[i] *lr);
+			weights[i] = weights[i] - (v_prev*momentum) + v_prev*(1 + momentum);
+
+			/*velocities[i] = velocities[i]*momentum + grad_weights[i]*lr;
 			weights[i] = weights[i] - velocities[i];
-			
+			*/
 			//weights[i] = weights[i] - (grad_weights[i]*lr);
 		}
 		

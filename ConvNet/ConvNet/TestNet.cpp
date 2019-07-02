@@ -537,7 +537,12 @@ bool TestNet::TrainSignCE2() {
 	utils::PrintLayerShapes(relu);
 	layer::MaxPool pool("pool", 24, 24, 12, 2, 2);
 	utils::PrintLayerShapes(pool);
-	layer::FC fc("fc", 12 * 12 * 12, 64);
+layer::Conv conv_2(12, 12, 12, "conv_2", 8, 3, 1, 0);
+utils::PrintLayerShapes(conv_2);
+layer::ReLU relu_1("relu_1", 10, 10, 8);
+	utils::PrintLayerShapes(relu_1);
+	//layer::FC fc("fc", 12 * 12 * 12, 64);
+	layer::FC fc("fc", 10 * 10 * 8, 64);
 	utils::PrintLayerShapes(fc);
 	layer::ReLU relu_2("relu_2", 64, 1, 1);
 	utils::PrintLayerShapes(relu_2);
@@ -548,7 +553,7 @@ bool TestNet::TrainSignCE2() {
 	Tensor3D<double> dW, db, target;
 	utils::Dataset trainingSet = utils::GetTrainingSet();
 
-	double lr = 0.0001;
+	double lr = 0.0005;
 	double cum_loss = 0;
 	int correct = 0;
 	for (int epoch = 1; epoch <= 50; ++epoch) {
@@ -566,7 +571,10 @@ bool TestNet::TrainSignCE2() {
 			conv.Forward(pool_0.GetOutput());
 			relu.Forward(conv.GetOutput());
 			pool.Forward(relu.GetOutput());
-			fc.Forward(pool.GetOutput().Flatten());
+conv_2.Forward(pool.GetOutput());
+relu_1.Forward(conv_2.GetOutput());
+//			fc.Forward(pool.GetOutput().Flatten());
+fc.Forward(relu_1.GetOutput().Flatten());
 			relu_2.Forward(fc.GetOutput());
 			fc_2.Forward(relu_2.GetOutput());
 			softmax.Forward(fc_2.GetOutput());
@@ -593,8 +601,10 @@ bool TestNet::TrainSignCE2() {
 			fc_2.Backprop(softmax.GetGrads());
 			relu_2.Backprop(fc_2.GetGrads());
 			fc.Backprop(relu_2.GetGrads());
-			//			fc.Backprop(d_out);
-			pool.Backprop(fc.GetGrads().Reshape(pool.GetOutputShape()));
+			relu_1.Backprop(fc.GetGrads().Reshape(relu_1.GetOutputShape()));
+			conv_2.Backprop(relu_1.GetGrads());
+			pool.Backprop(conv_2.GetGrads());
+//pool.Backprop(fc.GetGrads().Reshape(pool.GetOutputShape()));
 			relu.Backprop(pool.GetGrads());
 			conv.Backprop(relu.GetGrads());
 
@@ -603,6 +613,7 @@ bool TestNet::TrainSignCE2() {
 			fc.UpdateWeights(lr);
 
 			// Conv layer update
+			conv_2.UpdateWeights(lr);
 			conv.UpdateWeights(lr);
 		}
 
