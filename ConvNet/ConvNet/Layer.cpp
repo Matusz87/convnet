@@ -2,8 +2,8 @@
 #include <iostream>
 
 namespace layer {
-	Layer::Layer() { }
-	Layer::Layer(std::string name) { 
+	Layer::Layer() {  }
+	Layer::Layer(std::string name) {
 		this->name = name; 
 	}
 
@@ -38,5 +38,12 @@ namespace layer {
 	}
 	std::string Layer::GetName() {
 		return name;
+	}
+	void Layer::SetType(LayerType type) {
+		this->type = type;
+	}
+
+	LayerType Layer::GetType() {
+		return type;
 	}
 }

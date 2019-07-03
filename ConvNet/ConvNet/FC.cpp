@@ -5,12 +5,18 @@ namespace layer {
 	FC::~FC() { }
 
 	FC::FC(std::string name, int num_hidden) : Layer(name) {
+		LayerType type = LayerType::FC;
+		Layer::SetType(type);
+
 		output = Tensor3D<double>(num_hidden, 1, 1);
 		InitBias();
 		has_weights_initialized = false;
 	}
 
 	FC::FC(std::string name, int num_input, int num_hidden) : Layer(name) {
+		LayerType type = LayerType::FC;
+		Layer::SetType(type);
+
 		input = Tensor3D<double>(num_input, 1, 1);
 		this->num_hidden = num_hidden;
 		output = Tensor3D<double>(num_hidden, 1, 1);
@@ -32,12 +38,19 @@ namespace layer {
 
 	void FC::Forward(Tensor3D<double> prev_activation) 	{
 		input = Tensor3D<double>(prev_activation);
+		bool has_flattened = false;
+
+		if (input.GetShape().width != 1 && input.GetShape().depth != 1) {
+			tmp_input = input;
+			input = input.Flatten();
+			has_flattened = true;
+		}
+			
 		if (!has_weights_initialized) {
 			InitWeights();
 			InitGrads();
 		}
-
-
+		
 		for (int n = 0; n < output.GetShape().height; n++) {	
 			double dot = 0;
 
@@ -49,8 +62,11 @@ namespace layer {
 					}
 			
 			output(n, 0, 0) = dot + bias(n, 0, 0);;
-//			output_values[n] = dot + bias(n, 0, 0);;
 		}
+
+		// Input and its shape will be needed for backprop.
+		if (has_flattened)
+			input = tmp_input;
 	}
 
 	// dX = dOut*W
@@ -89,6 +105,32 @@ namespace layer {
 		//weights = weights - grad_weights*lr;
 
 		bias = bias - (grad_bias*lr);
+	}
+
+	nlohmann::json FC::Serialize() {
+		nlohmann::json layer;
+		nlohmann::json weights_json;
+		nlohmann::json bias_json;
+
+		layer["type"] = "fc";
+		layer["name"] = name;
+		layer["input"] = GetInputShape().height;
+		layer["output"] = GetOutputShape().height;
+
+		for (int inp = 0; inp < GetInputShape().height; ++inp) {
+			nlohmann::json weight;
+			for (int out = 0; out < GetOutputShape().height; ++out)
+				weight.push_back(weights(inp, out, 0));
+
+			weights_json[std::to_string(inp)] = weight;
+		}
+		for (int out = 0; out < GetOutputShape().height; ++out)
+			bias_json.push_back(bias(out, 0, 0));
+
+		layer["weights"] = weights_json;
+		layer["bias"] = bias_json;
+
+		return layer;
 	}
 
 	Tensor3D<double>& FC::GetWeights() 	{

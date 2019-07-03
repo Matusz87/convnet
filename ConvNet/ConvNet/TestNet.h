@@ -11,6 +11,7 @@ public:
 	bool TrainSignFC();
 	bool TrainSignCE();
 	bool TrainSignCE2();
+	bool Evaluate();
 	bool TrainSignSimple();
 	bool TrainSign();
 	void TestJSON();

@@ -14,6 +14,7 @@ namespace layer {
 		double Loss(Tensor3D<double> target);
 		void Backprop(Tensor3D<double> grad_out) override;
 		void UpdateWeights(double learning_rate, double momentum = 0.9) override;
+		nlohmann::json Serialize() override;
 	};
 
 }

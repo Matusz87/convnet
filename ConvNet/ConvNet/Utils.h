@@ -78,7 +78,7 @@ namespace utils {
 		return tensor;
 	}
 
-	static Dataset GetTrainingSet() {
+	static Dataset GetTrainingSet(int sample_per_class) {
 		Dataset dataset;
 
 		std::string path_dir = "../../../datasets/traffic_signs/train-52x52/";
@@ -88,18 +88,24 @@ namespace utils {
 			target = Tensor3D<double>(12, 1, 1);
 			target.InitZeros();
 			target(i, 0, 0) = 1;
-			for (int j = 0; j < 50; ++j) {
+			for (int j = 0; j < sample_per_class; ++j) {
 				path_dir = "../../../datasets/traffic_signs/train-52x52/";
 				if (j < 10) {
 					path_dir.append((std::to_string(i + 1)))
 						.append("/").append(std::to_string((i + 1)))
 						.append("_000").append(std::to_string(j))
 						.append(".bmp");
-				}  else {
+				}  else if (j < 100) {
 					path_dir.append((std::to_string(i + 1)))
 					.append("/").append(std::to_string((i + 1)))
 					.append("_00").append(std::to_string(j))
 					.append(".bmp");
+				}
+				else if (j < 1000) {
+					path_dir.append((std::to_string(i + 1)))
+						.append("/").append(std::to_string((i + 1)))
+						.append("_0").append(std::to_string(j))
+						.append(".bmp");
 				}
 //std::cout << path_dir << std::endl;
 				X = utils::CreateTensorFromImage(path_dir);
@@ -110,7 +116,7 @@ namespace utils {
 		return dataset;
 	}
 
-	static Dataset GetValidationSet() {
+	static Dataset GetValidationSet(int sample_per_class) {
 		Dataset dataset;
 
 		std::string path_dir = "../../../datasets/traffic_signs/train-52x52/";
@@ -120,7 +126,7 @@ namespace utils {
 			target = Tensor3D<double>(12, 1, 1);
 			target.InitZeros();
 			target(i, 0, 0) = 1;
-			for (int j = 0; j < 10; ++j) {
+			for (int j = 0; j < sample_per_class; ++j) {
 				path_dir = "../../../datasets/traffic_signs/train-52x52/";
 				if (j < 10) {
 					path_dir.append((std::to_string(i + 1)))
@@ -138,6 +144,46 @@ namespace utils {
 				X = utils::CreateTensorFromImage(path_dir);
 				dataset.push_back(std::pair<Tensor3D<double>, Tensor3D<double>>(X, target));
 			}
+		}
+
+		return dataset;
+	}
+
+	static Dataset GetTestSet(int sample_per_class) {
+		Dataset dataset;
+
+		std::string path_dir = "../../../datasets/traffic_signs/train-52x52/";
+		Tensor3D<double> X, target;
+
+		for (int i = 0; i < 12; ++i) {
+			target = Tensor3D<double>(12, 1, 1);
+			target.InitZeros();
+			target(i, 0, 0) = 1;
+			for (int j = 0; j < sample_per_class; ++j) {
+				path_dir = "../../../datasets/traffic_signs/train-52x52/";
+				if (j < 10) {
+					path_dir.append((std::to_string(i + 1)))
+						.append("/").append(std::to_string((i + 1)))
+						.append("_450").append(std::to_string(j))
+						.append(".bmp");
+				}
+				else if (j < 100) {
+					path_dir.append((std::to_string(i + 1)))
+						.append("/").append(std::to_string((i + 1)))
+						.append("_45").append(std::to_string(j))
+						.append(".bmp");
+				}
+				else if (j < 500) {
+					path_dir.append((std::to_string(i + 1)))
+						.append("/").append(std::to_string((i + 1)))
+						.append("_4").append(std::to_string(j + 500))
+						.append(".bmp");
+				}
+
+				X = utils::CreateTensorFromImage(path_dir);
+				dataset.push_back(std::pair<Tensor3D<double>, Tensor3D<double>>(X, target));
+			}
+
 		}
 
 		return dataset;

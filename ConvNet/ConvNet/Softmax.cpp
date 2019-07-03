@@ -8,6 +8,9 @@ namespace layer {
 
 	Softmax::Softmax(std::string name, int height, int width, int depth)
 				: Layer(name) {
+		LayerType type = LayerType::Softmax;
+		Layer::SetType(type);
+
 		input = Tensor3D<double>(height, width, depth);
 		output = Tensor3D<double>(height, width, depth);
 		grad_input = Tensor3D<double>(height, width, depth);
@@ -53,4 +56,13 @@ namespace layer {
 	}
 
 	void Softmax::UpdateWeights(double learning_rate, double momentum) { }
+	nlohmann::json Softmax::Serialize() {
+		nlohmann::json layer;
+
+		layer["type"] = "softmax";
+		layer["name"] = name;
+		layer["height"] = GetInputShape().height;
+
+		return layer;
+	}
 }

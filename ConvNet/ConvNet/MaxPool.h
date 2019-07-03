@@ -1,5 +1,6 @@
 #pragma once
 #include "Layer.h"
+#include <nlohmann\json.hpp>
 
 namespace layer {
 	class MaxPool : public Layer {
@@ -16,6 +17,7 @@ namespace layer {
 		void Forward(Tensor3D<double> prev_activation) override;
 		void Backprop(Tensor3D<double> grad_output) override;
 		void UpdateWeights(double learning_rate, double momentum = 0.9) override;
+		nlohmann::json Serialize() override;
 
 		int GetPoolSize();
 		int GetStride();

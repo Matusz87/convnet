@@ -7,6 +7,9 @@ namespace layer {
 
 	MaxPool::MaxPool(std::string name, int height, int width, int depth,
 					 int stride, int pool_size) : Layer(name) {
+		LayerType type = LayerType::Pool;
+		Layer::SetType(type);
+
 		input = Tensor3D<double>(height, width, depth);
 		int out_height = (height - pool_size) / stride + 1;
 		int out_width = (width - pool_size) / stride + 1;
@@ -41,6 +44,7 @@ namespace layer {
 	}
 
 	void MaxPool::Forward(Tensor3D<double> prev_activation) {
+//		std::cout << "Maxpool forward" << std::endl;
 		input = Tensor3D<double>(prev_activation);
 		max_indexes.clear();
 
@@ -104,9 +108,25 @@ namespace layer {
 	}
 
 	void MaxPool::UpdateWeights(double lr, double momentum) { }
+
+	nlohmann::json MaxPool::Serialize() {
+		nlohmann::json layer;
+
+		layer["type"] = "pool";
+		layer["name"] = name;
+		layer["height"] = GetInputShape().height;
+		layer["width"] = GetInputShape().width;
+		layer["depth"] = GetInputShape().depth;
+		layer["p_size"] = GetPoolSize();
+		layer["stride"] = GetStride();;
+		
+		return layer;
+	}
+
 	int MaxPool::GetPoolSize() {
 		return pool_size;
 	}
+
 	int MaxPool::GetStride() {
 		return stride;
 	}

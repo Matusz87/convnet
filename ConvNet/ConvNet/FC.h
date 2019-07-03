@@ -17,6 +17,7 @@ namespace layer {
 		void Forward(Tensor3D<double> prev_activation) override;
 		void Backprop(Tensor3D<double> grad_output) override;
 		void UpdateWeights(double learning_rate, double momentum = 0.9) override;
+		nlohmann::json Serialize() override;
 
 		// Only for testing purposes.
 		Tensor3D<double>& GetWeights();
@@ -36,9 +37,8 @@ namespace layer {
 		Tensor3D<double> grad_bias;
 		// Velocities for momentum.
 		Tensor3D<double> velocities;
-
-		// Auxiliary container for backprop.
-		std::vector<double> output_values;
+		// Auxiliary tensor for flattening in the forward pass.
+		Tensor3D<double> tmp_input;
 		bool has_weights_initialized;
 
 		void InitWeights();

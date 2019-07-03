@@ -6,7 +6,9 @@ namespace layer {
 	Conv::~Conv() { }
 
 	Conv::Conv(int height, int width, int depth, std::string name, int f_count,
-		int f_size, int stride, int padding) {
+		int f_size, int stride, int padding) : Layer(name) {
+		LayerType type = LayerType::Conv;
+		Layer::SetType(type);
 		input = Tensor3D<double>(height, width, depth);
 		filter_count = f_count;
 		filter_size = f_size;
@@ -238,6 +240,37 @@ namespace layer {
 		for (int i = 0; i < grad_bias.size(); ++i) {
 			bias[i] = bias[i] - (bias[i]*lr);
 		}
+	}
+
+	nlohmann::json Conv::Serialize() {
+		nlohmann::json layer;
+		nlohmann::json weights_json;
+		nlohmann::json bias_json;
+
+		layer["type"] = "conv";
+		layer["name"] = name;
+		layer["height"] = GetInputShape().height;
+		layer["width"] = GetInputShape().width;
+		layer["depth"] = GetInputShape().depth;
+		layer["f_count"] = filter_count;
+		layer["f_size"] = filter_size;
+		layer["stride"] = stride;;
+		layer["padding"] = padding;
+
+		for (int filter = 0; filter < weights.size(); ++filter) {
+			nlohmann::json weight;
+			for (int d = 0; d < weights[filter].GetShape().depth; ++d)
+				for (int h = 0; h < weights[filter].GetShape().height; ++h)
+					for (int w = 0; w < weights[filter].GetShape().width; ++w)
+						weight.push_back(weights[filter](h, w, d));
+
+			weights_json[std::to_string(filter)] = weight;
+			bias_json.push_back(bias[filter](0, 0, 0));
+		}
+		layer["weights"] = weights_json;
+		layer["bias"] = bias_json;
+
+		return layer;
 	}
 
 	std::vector<Tensor3D<double>>& Conv::GetWeights() {

@@ -4,6 +4,9 @@ namespace layer {
 	ReLU::ReLU() { 	}
 
 	ReLU::ReLU(std::string name, int height, int width, int depth) : Layer(name)	{
+		LayerType type = LayerType::ReLU;
+		Layer::SetType(type);
+
 		input = Tensor3D<double>(height, width, depth);
 		output = Tensor3D<double>(height, width, depth);
 		grad_input = Tensor3D<double>(height, width, depth);
@@ -55,6 +58,18 @@ namespace layer {
 	}
 
 	void ReLU::UpdateWeights(double lr, double momentum) { }
+
+	nlohmann::json ReLU::Serialize() {
+		nlohmann::json layer;
+
+		layer["type"] = "relu";
+		layer["name"] = name;
+		layer["height"] = GetInputShape().height;
+		layer["width"] = GetInputShape().width;
+		layer["depth"] = GetInputShape().depth;
+
+		return layer;
+	}
 
 	ReLU::~ReLU() { }
 }

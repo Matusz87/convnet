@@ -16,7 +16,7 @@ namespace layer {
 		void Forward(Tensor3D<double> prev_activation) override;
 		void Backprop(Tensor3D<double> grad_output) override;
 		void UpdateWeights(double learning_rate, double momentum = 0.9) override;
-		//Tensor3D<double> ZeroPad(Tensor3D<double> tensor);
+		nlohmann::json Serialize() override;
 
 		std::vector<Tensor3D<double>>& GetWeights();
 		std::vector<Tensor3D<double>>& GetBias();
