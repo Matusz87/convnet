@@ -22,9 +22,6 @@
     <Filter Include="Source Files\tests">
       <UniqueIdentifier>{264a4aab-1ad1-4bd6-a713-5ca3b08d7aea}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\activations">
-      <UniqueIdentifier>{87e4b2a9-e6d9-4582-9932-e925b881a8ca}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\layers">
       <UniqueIdentifier>{a4fc78f7-ed0e-4cfd-8753-3120df359332}</UniqueIdentifier>
     </Filter>
@@ -83,6 +80,9 @@
     </ClCompile>
     <ClCompile Include="Model.cpp">
       <Filter>Source Files\core</Filter>
+    </ClCompile>
+    <ClCompile Include="test.cpp">
+      <Filter>Source Files\tests</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

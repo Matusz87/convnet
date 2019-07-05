@@ -22,12 +22,12 @@ bool TestTensor::TestTensorFromMatSuccess() {
 	cv::split(img, bgr);
 
 	convnet_core::Tensor3D<double> tensor(img);
-	//PrintTensor(tensor);
+	PrintTensor(tensor);
 
 	assert(CompareMatToTensor(bgr, tensor));
 
 	cv::imshow("testMatrix", img);
-	cv::waitKey(0); 
+	//cv::waitKey(0); 
 
 	return true;
 }

@@ -1,3 +1,6 @@
+// PROJECT: Convolutional neural network implementation.
+// AUTHOR: Tamás Matuszka
+
 #pragma once
 
 #include <cassert>
@@ -10,6 +13,7 @@
 #include <random>
 
 namespace convnet_core {
+	// Structure that stores the shape of a tensor.
 	struct Triplet {
 		int height, width, depth;
 	};
@@ -18,7 +22,7 @@ namespace convnet_core {
 	class Tensor3D
 	{
 	public:
-		Tensor3D() { }; 
+		Tensor3D() { };
 		Tensor3D(Triplet shape);
 		Tensor3D(int height, int width, int depth);
 		Tensor3D(const Tensor3D& other);
@@ -30,7 +34,7 @@ namespace convnet_core {
 		Tensor3D<T> operator/(T scalar);
 		Tensor3D<T> operator+(T scalar);
 		Tensor3D<T> operator=(const Tensor3D<T>& other);
-		
+
 		T& operator()(int row, int col, int channel);
 		T& get(int row, int col, int channel);
 		T Sum();
@@ -41,13 +45,11 @@ namespace convnet_core {
 		Triplet GetShape();
 		void InitZeros();
 		void InitRandom();
-		const T* GetData();
-		//void CopyFrom(std::vector<std::vector<std::vector<T>>> data);
 
 		~Tensor3D();
 
 	private:
-		T* data;
+		std::vector<T> data;
 		Triplet shape;
 
 		void AppendChannel(const cv::Mat& mat, int channel);
@@ -66,18 +68,12 @@ namespace convnet_core {
 
 	template<typename T>
 	Tensor3D<T>::Tensor3D(const Tensor3D& other) {
-		data = new T[other.shape.width *other.shape.height *other.shape.depth];
-		memcpy(
-			this->data,
-			other.data,
-			other.shape.width *other.shape.height *other.shape.depth * sizeof(T)
-		);
+		data = std::vector<T>(other.data);
 		this->shape = other.shape;
-//		std::cout << "Tensor const: " << shape.height << " " << shape.width << " " << shape.depth << std::endl;
 	}
 
 	template<typename T>
-	Tensor3D<T>::Tensor3D(const cv::Mat& image) {		
+	Tensor3D<T>::Tensor3D(const cv::Mat& image) {
 		int depth = image.channels();
 		int height = image.rows;
 		int width = image.cols;
@@ -97,7 +93,7 @@ namespace convnet_core {
 		Tensor3D<T> clone(*this);
 		for (int i = 0; i < other.shape.height * other.shape.width * other.shape.depth; i++)
 			clone.data[i] += other.data[i];
-		
+
 		return clone;
 	}
 
@@ -148,12 +144,7 @@ namespace convnet_core {
 
 	template<typename T>
 	inline Tensor3D<T> Tensor3D<T>::operator=(const Tensor3D<T>& other) {
-		data = new T[other.shape.width *other.shape.height *other.shape.depth];
-		memcpy(
-			this->data,
-			other.data,
-			other.shape.width *other.shape.height *other.shape.depth * sizeof(T)
-		);
+		data = std::vector<T>(other.data);
 		this->shape = other.shape;
 
 		return *this;
@@ -178,12 +169,7 @@ namespace convnet_core {
 
 	template<typename T>
 	inline T Tensor3D<T>::Sum() {
-		std::vector<double> err;
-		err.assign(data, data + shape.height*shape.width*shape.depth);
-
-		T Sum = std::accumulate(err.begin(), err.end(), 0);
-
-		return Sum;
+		return std::accumulate(data.begin(), data.end(), 0);;
 	}
 
 	template<typename T>
@@ -233,10 +219,7 @@ namespace convnet_core {
 	}
 
 	template<typename T>
-	Tensor3D<T>::~Tensor3D() {
-		if (data != NULL)
-			delete[] data;
-	}
+	Tensor3D<T>::~Tensor3D() { }
 
 	// Append the color-channels of an image to the unrolled data array.
 	template<typename T>
@@ -253,7 +236,8 @@ namespace convnet_core {
 
 	template<typename T>
 	void Tensor3D<T>::SetParams(int height, int width, int depth) {
-		data = new T[height * width * depth];
+		data = std::vector<T>(height * width * depth);
+
 		shape.height = height;
 		shape.width = width;
 		shape.depth = depth;
@@ -283,11 +267,6 @@ namespace convnet_core {
 					get(i, j, k) = normalDistribution(generator);
 	}
 
-	template<typename T>
-	inline const T * Tensor3D<T>::GetData() {
-		return data;
-	}
-
 	static void PrintTensor(Tensor3D<double>& tensor) {
 		int width = tensor.GetShape().width;
 		int height = tensor.GetShape().height;
@@ -302,20 +281,5 @@ namespace convnet_core {
 				printf("\n");
 			}
 		}
-	}
-
-	static Tensor3D<float> to_tensor(std::vector<std::vector<std::vector<float>>> data) {
-		int z = data.size();
-		int y = data[0].size();
-		int x = data[0][0].size();
-
-
-		Tensor3D<float> t(x, y, z);
-
-		for (int i = 0; i < x; i++)
-			for (int j = 0; j < y; j++)
-				for (int k = 0; k < z; k++)
-					t(i, j, k) = data[k][j][i];
-		return t;
 	}
 }

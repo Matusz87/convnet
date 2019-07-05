@@ -7,7 +7,7 @@ namespace layer {
 		this->name = name; 
 	}
 
-	Layer::Layer(convnet_core::Triplet shape, std::string name) {
+	Layer::Layer(const convnet_core::Triplet& shape, std::string name) {
 		this->name = name;
 		input = Tensor3D<double>(shape.height, shape.width, shape.depth);
 	}
@@ -17,14 +17,22 @@ namespace layer {
 		input = Tensor3D<double>(prev_activation);
 	}
 
+	Layer::Layer(const Layer& other) {
+		input = other.input;
+		output = other.output;
+		grad_input = other.grad_input;
+		name = other.name;
+		type = other.type;
+	}
+
 	Layer::~Layer() { }
-	convnet_core::Tensor3D<double> Layer::GetInput() {
+	convnet_core::Tensor3D<double>& Layer::GetInput() {
 		return input;
 	}
-	convnet_core::Tensor3D<double> Layer::GetOutput() {
+	convnet_core::Tensor3D<double>& Layer::GetOutput() {
 		return output;
 	}
-	convnet_core::Tensor3D<double> Layer::GetGrads() {
+	convnet_core::Tensor3D<double>& Layer::GetGrads() {
 		return grad_input;
 	}
 	convnet_core::Triplet Layer::GetInputShape() {

@@ -12,6 +12,8 @@ namespace layer {
 		grad_input = Tensor3D<double>(height, width, depth);
 	}
 
+	ReLU::ReLU(const ReLU& other) : Layer(other) { }
+
 	ReLU::ReLU(convnet_core::Triplet shape, std::string name) : Layer(shape, name) {
 		output = Tensor3D<double>(shape.height, shape.width, shape.depth);
 		grad_input = Tensor3D<double>(shape.height, shape.width, shape.depth);
@@ -24,7 +26,7 @@ namespace layer {
 		grad_input = Tensor3D<double>(shape.height, shape.width, shape.depth);
 	}
 
-	void ReLU::Forward(Tensor3D<double> prev_activation) {
+	void ReLU::Forward(const Tensor3D<double>& prev_activation) {
 		input = Tensor3D<double>(prev_activation);
 		
 		int depth = input.GetShape().depth;
@@ -42,7 +44,7 @@ namespace layer {
 	}
 
 	//https://leonardoaraujosantos.gitbooks.io/artificial-inteligence/content/relu_layer.html
-	void ReLU::Backprop(Tensor3D<double> grad_out) {
+	void ReLU::Backprop(Tensor3D<double>& grad_out) {
 		grad_input.InitZeros();
 
 		int depth = input.GetShape().depth;
@@ -70,6 +72,8 @@ namespace layer {
 
 		return layer;
 	}
+
+	double ReLU::Loss(Tensor3D<double>& target) { return 0.0; }
 
 	ReLU::~ReLU() { }
 }

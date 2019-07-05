@@ -55,25 +55,25 @@ bool TestConv::TestPadding() {
 }
 
 bool TestConv::TestUnpadding() {
-	std::vector<int> vec({ 1,2,3,4,5,6,7,8,9 });
-	Tensor3D<double> tensor = utils::CreateTensorFromVec(vec, 3, 3);
-	tensor = Tensor3D<double>(2, 2, 2);
-	tensor.InitRandom();
+	//std::vector<int> vec({ 1,2,3,4,5,6,7,8,9 });
+	//Tensor3D<double> tensor = utils::CreateTensorFromVec(vec, 3, 3);
+	//tensor = Tensor3D<double>(2, 2, 2);
+	//tensor.InitRandom();
 
-	int f_count = 2; int f_size = 3;
-	int stride = 2; int padding = 2;
-	layer::Conv conv(tensor, "conv_1", f_count, f_size, stride, padding);
+	//int f_count = 2; int f_size = 3;
+	//int stride = 2; int padding = 2;
+	//layer::Conv conv(tensor, "conv_1", f_count, f_size, stride, padding);
 
-	std::cout << "Input: " << std::endl;
-	convnet_core::PrintTensor(conv.GetInput());
+	//std::cout << "Input: " << std::endl;
+	//convnet_core::PrintTensor(conv.GetInput());
 
-	std::cout << "Padded: " << std::endl;
-	Tensor3D<double> padded = conv.ZeroPad(conv.GetInput());
-	convnet_core::PrintTensor(padded);
+	//std::cout << "Padded: " << std::endl;
+	//Tensor3D<double> padded = conv.ZeroPad(conv.GetInput());
+	//convnet_core::PrintTensor(padded);
 
-	std::cout << "Unpadded: " << std::endl;
-	Tensor3D<double> unpadded = conv.Unpad(padded);
-	convnet_core::PrintTensor(unpadded);
+	//std::cout << "Unpadded: " << std::endl;
+	//Tensor3D<double> unpadded = conv.Unpad(padded);
+	//convnet_core::PrintTensor(unpadded);
 	
 	return true;
 }

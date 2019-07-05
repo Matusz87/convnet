@@ -13,11 +13,13 @@ namespace layer {
 			int stride, int pool_size);
 		MaxPool(convnet_core::Tensor3D<double>& prev_activation, std::string name,
 			int stride, int pool_size);
+		MaxPool(const MaxPool& other);
 
-		void Forward(Tensor3D<double> prev_activation) override;
-		void Backprop(Tensor3D<double> grad_output) override;
+		void Forward(const Tensor3D<double>& prev_activation) override;
+		void Backprop(Tensor3D<double>& grad_output) override;
 		void UpdateWeights(double learning_rate, double momentum = 0.9) override;
 		nlohmann::json Serialize() override;
+		double Loss(Tensor3D<double>& target) override;
 
 		int GetPoolSize();
 		int GetStride();

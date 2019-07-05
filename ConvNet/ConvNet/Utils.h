@@ -100,11 +100,16 @@ namespace utils {
 					.append("/").append(std::to_string((i + 1)))
 					.append("_00").append(std::to_string(j))
 					.append(".bmp");
-				}
-				else if (j < 1000) {
+				} else if (j < 1000) {
 					path_dir.append((std::to_string(i + 1)))
 						.append("/").append(std::to_string((i + 1)))
 						.append("_0").append(std::to_string(j))
+						.append(".bmp");
+				}
+				else if (j < 4000) {
+					path_dir.append((std::to_string(i + 1)))
+						.append("/").append(std::to_string((i + 1)))
+						.append("_").append(std::to_string(j))
 						.append(".bmp");
 				}
 //std::cout << path_dir << std::endl;
@@ -134,10 +139,16 @@ namespace utils {
 						.append("_400").append(std::to_string(j))
 						.append(".bmp");
 				}
-				else {
+				else if (j < 100) {
 					path_dir.append((std::to_string(i + 1)))
 						.append("/").append(std::to_string((i + 1)))
 						.append("_40").append(std::to_string(j))
+						.append(".bmp");
+				}
+				else if (j < 500) {
+					path_dir.append((std::to_string(i + 1)))
+						.append("/").append(std::to_string((i + 1)))
+						.append("_4").append(std::to_string(j))
 						.append(".bmp");
 				}
 //				std::cout << path_dir << std::endl;
@@ -226,11 +237,19 @@ namespace utils {
 		o << std::setw(4) << layer;
 	}
 
+	// TODO: DELETE READ FROM PATH FUNCTIONS
 	static layer::MaxPool ReadPoolLayer(std::string path) {
 		std::ifstream i(path);
 		nlohmann::json layer;
 		i >> layer;
 
+		layer::MaxPool pool = layer::MaxPool(layer["name"], layer["height"],
+			layer["width"], layer["depth"], layer["stride"], layer["p_size"]);
+
+		return pool;
+	}
+
+	static layer::MaxPool ReadPoolLayerJSON(nlohmann::json layer) {
 		layer::MaxPool pool = layer::MaxPool(layer["name"], layer["height"],
 			layer["width"], layer["depth"], layer["stride"], layer["p_size"]);
 
@@ -261,6 +280,13 @@ namespace utils {
 		return relu;
 	}
 
+	static layer::ReLU ReadReLUJSON(nlohmann::json layer) {
+		layer::ReLU relu = layer::ReLU(layer["name"], layer["height"],
+			layer["width"], layer["depth"]);
+
+		return relu;
+	}
+
 	static void WriteSoftmax(layer::Softmax softmax, std::string path) {
 		std::ofstream o(path);
 		nlohmann::json layer;
@@ -277,7 +303,17 @@ namespace utils {
 		nlohmann::json layer;
 		i >> layer;
 
-		layer::Softmax softmax = layer::Softmax(layer["name"], layer["height"], 1, 1);
+		layer::Softmax softmax = layer::Softmax(layer["name"], 
+												layer["height"], 
+												1, 1);
+
+		return softmax;
+	}
+
+	static layer::Softmax ReadSoftmaxJSON(nlohmann::json layer) {
+		layer::Softmax softmax = layer::Softmax(layer["name"],
+												layer["height"], 
+												1, 1);
 
 		return softmax;
 	}
@@ -350,6 +386,43 @@ namespace utils {
 		return conv;
 	}
 
+	static layer::Conv ReadConvLayerJSON(nlohmann::json layer) {
+		layer::Conv conv = layer::Conv(layer["height"], layer["width"],
+			layer["depth"], layer["name"],
+			layer["f_count"], layer["f_size"],
+			layer["stride"], layer["padding"]);
+
+		/*if (layer.count("bias") == 0 ||
+			layer.count("weights") == 0) {
+			return conv;
+		}*/
+				
+		int b_ind = 0;
+		for (auto& element : layer["bias"]) {
+			conv.GetBias()[b_ind](0, 0, 0) = element;
+			++b_ind;
+		}
+
+		int filter_size = layer["f_size"];
+		for (nlohmann::json::iterator it = layer["weights"].begin();
+			it != layer["weights"].end(); ++it) {
+			for (int h = 0; h < layer["f_size"]; ++h) {
+				for (int w = 0; w < layer["f_size"]; ++w) {
+					for (int d = 0; d < layer["depth"]; ++d) {
+						conv.GetWeights()[std::stoi(it.key())](h, w, d) =
+							it.value()[
+								d * (filter_size*filter_size) +
+									h * (filter_size)+
+									w
+							];
+					}
+				}
+			}
+		}
+
+		return conv;
+	}
+
 	static void WriteFCLayer(layer::FC fc, std::string path) {
 		std::ofstream o(path);
 		nlohmann::json layer;
@@ -393,6 +466,33 @@ namespace utils {
 		for (nlohmann::json::iterator it = layer["weights"].begin(); 
 			it != layer["weights"].end(); ++it) {
 			
+			int i = 0;
+			for (auto& element : it.value()) {
+				fc.GetWeights()(std::stoi(it.key()), i, 0) = element;
+				++i;
+			}
+		}
+
+		return fc;
+	}
+
+	static layer::FC ReadFCLayerJSON(nlohmann::json layer) {
+		layer::FC fc = layer::FC(layer["name"], layer["input"], layer["output"]);
+
+		if (layer.count("bias") == 0 ||
+			layer.count("weights") == 0) {
+			return fc;
+		}
+
+		int b_ind = 0;
+		for (auto& element : layer["bias"]) {
+			fc.GetBias()(b_ind, 0, 0) = element;
+			++b_ind;
+		}
+
+		for (nlohmann::json::iterator it = layer["weights"].begin();
+			it != layer["weights"].end(); ++it) {
+
 			int i = 0;
 			for (auto& element : it.value()) {
 				fc.GetWeights()(std::stoi(it.key()), i, 0) = element;

@@ -25,6 +25,17 @@ namespace layer {
 		InitGrads();
 		has_weights_initialized = true;
 	}
+	
+	// Used for loading parameters from a saved model.
+	// Hence, has_weight_initizalized is set to true.
+	FC::FC(const FC& other) : Layer(other) { 
+		this->num_hidden = other.num_hidden;
+		weights = other.weights;
+		bias = other.bias;
+		InitGrads();
+
+		has_weights_initialized = true;
+	}
 
 	FC::FC(convnet_core::Tensor3D<double>& prev_activation, std::string name,
 		   int num_hidden) : Layer(prev_activation, name) {
@@ -36,7 +47,7 @@ namespace layer {
 		has_weights_initialized = true;
 	}
 
-	void FC::Forward(Tensor3D<double> prev_activation) 	{
+	void FC::Forward(const Tensor3D<double>& prev_activation) 	{
 		input = Tensor3D<double>(prev_activation);
 		bool has_flattened = false;
 
@@ -72,8 +83,12 @@ namespace layer {
 	// dX = dOut*W
 	// dW = X*dOut
 	// db = sum(dOut)
-	void FC::Backprop(Tensor3D<double> grad_output) {
+	void FC::Backprop(Tensor3D<double>& grad_output) {
 		grad_input.InitZeros();
+		// Handle flattened input.
+		tmp_input = input;
+		input = input.Flatten();
+
 //std::cout << input.GetShape().height << " " << input.GetShape().width << " " << input.GetShape().depth << std::endl;
 		double sum = 0;
 		for (int n = 0; n < output.GetShape().height; n++) 		{
@@ -88,6 +103,9 @@ namespace layer {
 			sum += grad_output(n, 0, 0);
 		}
 		grad_bias = grad_bias + sum;
+
+		// Restore input to its original shape
+		input = tmp_input;
 	}
 
 	// Nesterov momentum
@@ -97,13 +115,6 @@ namespace layer {
 		velocities = velocities*momentum - (grad_weights*lr);
 		weights = weights - (v_prev*momentum) + v_prev*(1 + momentum);
 		
-		//velocities = velocities*momentum + (grad_weights*lr)*(weights-(velocities*momentum)) ;
-		
-		/*velocities = velocities*momentum + (grad_weights*lr);
-		weights = weights - velocities;
-		*/
-		//weights = weights - grad_weights*lr;
-
 		bias = bias - (grad_bias*lr);
 	}
 
@@ -114,10 +125,12 @@ namespace layer {
 
 		layer["type"] = "fc";
 		layer["name"] = name;
-		layer["input"] = GetInputShape().height;
+		// Take flattening into account.
+		int inp_num = GetInputShape().height * GetInputShape().width * GetInputShape().depth;
+		layer["input"] = inp_num;
 		layer["output"] = GetOutputShape().height;
 
-		for (int inp = 0; inp < GetInputShape().height; ++inp) {
+		for (int inp = 0; inp < inp_num; ++inp) {
 			nlohmann::json weight;
 			for (int out = 0; out < GetOutputShape().height; ++out)
 				weight.push_back(weights(inp, out, 0));
@@ -132,6 +145,8 @@ namespace layer {
 
 		return layer;
 	}
+
+	double FC::Loss(Tensor3D<double>& target) { return 0.0; }
 
 	Tensor3D<double>& FC::GetWeights() 	{
 		return weights;

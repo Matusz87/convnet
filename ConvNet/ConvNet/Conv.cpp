@@ -27,6 +27,13 @@ namespace layer {
 		InitGrads();
 	}
 
+	// Used for loading parameters from a saved model.
+	Conv::Conv(const Conv& other) : Layer(other) {
+		weights = other.weights;
+		bias = other.bias;
+		InitGrads();
+	}
+
 	Conv::Conv(convnet_core::Triplet shape, std::string name, int f_count, 
 			   int f_size, int stride, int padding) : Layer(shape, name) {
 		filter_count = f_count;
@@ -63,7 +70,7 @@ namespace layer {
 		InitGrads();
 	}
 
-	void Conv::Forward(Tensor3D<double> prev_activation) {
+	void Conv::Forward(const Tensor3D<double>& prev_activation) {
 		input = Tensor3D<double>(prev_activation);
 
 		Tensor3D<double> padded = ZeroPad(input);
@@ -115,7 +122,7 @@ namespace layer {
 		}
 	}
 
-	void Conv::Backprop(Tensor3D<double> grad_output) {
+	void Conv::Backprop(Tensor3D<double>& grad_output) {
 		Tensor3D<double> padded = ZeroPad(input);
 		grad_input.InitZeros();
 		Tensor3D<double> grad_input_padded(padded.GetShape());
@@ -273,6 +280,8 @@ namespace layer {
 		return layer;
 	}
 
+	double Conv::Loss(Tensor3D<double>& target) { return 0.0; }
+
 	std::vector<Tensor3D<double>>& Conv::GetWeights() {
 		return weights;
 	}
@@ -295,18 +304,20 @@ namespace layer {
 	}
 
 	void Conv::InitWeights() {
+		weights = std::vector<Tensor3D<double>>(filter_count);
 		for (int i = 0; i < filter_count; ++i) {
 			Tensor3D<double> t(filter_size, filter_size, input.GetShape().depth);
 			t.InitRandom();
-			weights.push_back(t);
+			weights[i] = t;			
 		}
 	}
 
 	void Conv::InitBias() {
+		bias = std::vector<Tensor3D<double>>(filter_count);
 		for (int i = 0; i < filter_count; ++i) {
 			Tensor3D<double> t(1, 1, 1);
 			t.InitZeros();
-			bias.push_back(t);
+			bias[i] = t;
 		}
 	}
 
@@ -314,15 +325,19 @@ namespace layer {
 		grad_input = Tensor3D<double>(input.GetShape());
 		grad_input.InitZeros();
 
+		grad_weights = std::vector<Tensor3D<double>>(filter_count);
+		grad_bias = std::vector<Tensor3D<double>>(filter_count);
+		velocities = std::vector<Tensor3D<double>>(filter_count);
+
 		for (int i = 0; i < filter_count; ++i) {
 			Tensor3D<double> dB(1, 1, 1);
 			dB.InitZeros();
-			grad_bias.push_back(dB);
+			grad_bias[i] = dB;
 
 			Tensor3D<double> dW(filter_size, filter_size, input.GetShape().depth);
 			dW.InitZeros();
-			grad_weights.push_back(dW);
-			velocities.push_back(Tensor3D<double>(dW));
+			grad_weights[i] = dW;
+			velocities[i] = Tensor3D<double>(dW);
 		}
 	}
 

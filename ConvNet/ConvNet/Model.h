@@ -17,20 +17,17 @@ namespace convnet_core {
 		Model();
 		~Model();
 
-		void Fit(Tensor3D<double>& input, Tensor3D<double>& target);
-		Tensor3D<double> Predict(Tensor3D<double>& input);
+		std::pair<bool, double> Fit(Tensor3D<double>& input, 
+									Tensor3D<double>& target,
+									double learning_rate, double momentum=0.9);
+		Tensor3D<double> Predict(const Tensor3D<double>& input);
 		void Save(std::string path);
 		void Load(std::string path);
+		void Add(layer::Layer* layer);
+		std::pair<bool, double> Evaluate(Tensor3D<double>& input, Tensor3D<double>& target);
 
-		void Add(layer::Conv& layer);
-		void Add(layer::ReLU& layer);
-		void Add(layer::MaxPool& layer);
-		void Add(layer::FC& layer);
-		void Add(layer::Softmax& layer);
-
-		std::vector<layer::Layer*> layers;
 	private:
-		//std::vector<Layer_ptr> layers;
+		std::vector<layer::Layer*> layers;
 	};
 }
 

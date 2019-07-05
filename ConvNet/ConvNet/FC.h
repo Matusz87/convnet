@@ -11,13 +11,15 @@ namespace layer {
 		FC(std::string name, int num_hidden);
 		FC(std::string name, int num_input, int num_hidden);
 		FC(convnet_core::Triplet shape, std::string name, int num_hidden);
-		FC(convnet_core::Tensor3D<double>& prev_activation, 
+		FC(const FC & other);
+		FC(convnet_core::Tensor3D<double>& prev_activation,
 		   std::string name, int num_hidden);
 
-		void Forward(Tensor3D<double> prev_activation) override;
-		void Backprop(Tensor3D<double> grad_output) override;
+		void Forward(const Tensor3D<double>& prev_activation) override;
+		void Backprop(Tensor3D<double>& grad_output) override;
 		void UpdateWeights(double learning_rate, double momentum = 0.9) override;
 		nlohmann::json Serialize() override;
+		double Loss(Tensor3D<double>& target) override;
 
 		// Only for testing purposes.
 		Tensor3D<double>& GetWeights();

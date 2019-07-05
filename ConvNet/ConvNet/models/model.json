@@ -1,13 +1,89 @@
 {
-    "layer1": {
+    "layer_0": {
         "depth": 3,
-        "f_count": 2,
-        "f_size": 2,
-        "height": 10,
-        "name": "conv_0",
+        "height": 52,
+        "name": "pool_0",
+        "p_size": 2,
+        "stride": 2,
+        "type": "pool",
+        "width": 52
+    },
+    "layer_1": {
+        "depth": 3,
+        "f_count": 12,
+        "f_size": 3,
+        "height": 26,
+        "name": "conv",
         "padding": 0,
         "stride": 1,
         "type": "conv",
+        "width": 26
+    },
+    "layer_2": {
+        "depth": 12,
+        "height": 24,
+        "name": "relu",
+        "type": "relu",
+        "width": 24
+    },
+    "layer_3": {
+        "depth": 12,
+        "height": 24,
+        "name": "pool",
+        "p_size": 2,
+        "stride": 2,
+        "type": "pool",
+        "width": 24
+    },
+    "layer_4": {
+        "depth": 12,
+        "f_count": 8,
+        "f_size": 3,
+        "height": 12,
+        "name": "conv_2",
+        "padding": 0,
+        "stride": 1,
+        "type": "conv",
+        "width": 12
+    },
+    "layer_5": {
+        "depth": 8,
+        "height": 10,
+        "name": "relu_1",
+        "type": "relu",
         "width": 10
+    },
+	"layer_6": {
+        "depth": 8,
+        "height": 10,
+        "name": "pool_2",
+        "type": "pool",
+		"p_size": 2,
+        "stride": 2,
+        "width": 10
+    },
+    "layer_7": {
+        "input": 400,
+        "name": "fc",
+        "output": 64,
+        "type": "fc"
+    },
+    "layer_8": {
+        "depth": 1,
+        "height": 64,
+        "name": "relu_2",
+        "type": "relu",
+        "width": 1
+    },
+    "layer_9": {
+        "input": 64,
+        "name": "fc_2",
+        "output": 12,
+        "type": "fc"
+    },
+    "layer_10": {
+        "height": 12,
+        "name": "softmax",
+        "type": "softmax"
     }
-}
+}	

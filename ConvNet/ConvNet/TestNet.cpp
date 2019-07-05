@@ -539,7 +539,7 @@ bool TestNet::TrainSignCE2() {
 	pool_0 = utils::ReadPoolLayer("models/pool_0.json");
 	utils::PrintLayerShapes(pool_0);
 	layer::Conv conv(26, 26, 3, "conv", 12, 3, 1, 0);
-	conv = utils::ReadConvLayer("models/1200/conv-8-.json");
+	conv = utils::ReadConvLayer("models/1200/conv-93.json");
 	utils::PrintLayerShapes(conv);
 	layer::ReLU relu("relu", 24, 24, 12);
 	relu = utils::ReadReLU("models/relu.json");
@@ -548,27 +548,27 @@ bool TestNet::TrainSignCE2() {
 	pool = utils::ReadPoolLayer("models/pool.json");
 	utils::PrintLayerShapes(pool);
 	layer::Conv conv_2(12, 12, 12, "conv_2", 8, 3, 1, 0);
-	conv_2 = utils::ReadConvLayer("models/1200/conv_2-8-.json");
+	conv_2 = utils::ReadConvLayer("models/1200/conv_2-93.json");
 	utils::PrintLayerShapes(conv_2);
 	layer::ReLU relu_1("relu_1", 10, 10, 8);
 	relu_1 = utils::ReadReLU("models/relu_1.json");
 	utils::PrintLayerShapes(relu_1);
 	//layer::FC fc("fc", 12 * 12 * 12, 64);
 	layer::FC fc("fc", 10 * 10 * 8, 64);
-	fc = utils::ReadFCLayer("models/1200/fc-8-.json");
+	fc = utils::ReadFCLayer("models/1200/fc-93.json");
 	utils::PrintLayerShapes(fc);
 	layer::ReLU relu_2("relu_2", 64, 1, 1);
 	relu_2 = utils::ReadReLU("models/relu_2.json");
 	utils::PrintLayerShapes(relu_2);
 	layer::FC fc_2("fc_2", 64, 12);
 	utils::PrintLayerShapes(fc_2);
-	fc_2 = utils::ReadFCLayer("models/1200/fc_2-8-.json");
+	fc_2 = utils::ReadFCLayer("models/1200/fc_2-93.json");
 	layer::Softmax softmax("softmax", 12, 1, 1);
 	softmax = utils::ReadSoftmax("models/softmax.json");
 
 	Tensor3D<double> dW, db, target;
-	utils::Dataset trainingSet = utils::GetTrainingSet(600);
-	utils::Dataset validSet = utils::GetValidationSet(10);
+	utils::Dataset trainingSet = utils::GetTrainingSet(1000);
+	utils::Dataset validSet = utils::GetValidationSet(100);
 	
 	double lr = 0.0001;
 	double cum_loss = 0;
