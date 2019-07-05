@@ -1,21 +1,33 @@
+// PROJECT: Convolutional neural network implementation.
+// AUTHOR: Tamás Matuszka
+
 #include "Model.h"
 #include "Conv.h"
 #include "Utils.h"
 
 namespace convnet_core {
+	// Default constructor and destructor.
 	Model::Model()  { }
 	Model::~Model() { }
 
+	// Fits the model with an image. Includes forward pass and backpropagation.
+	// Finnaly, trainable parameters are updated based on the gradients obtained
+	// by the backprop phase.
+	// @param input:	input image as a 3D tensor.
+	// @param target:	one-hot encoded target variable. In traffic sign, it is (12, 1, 1)D vector
+	// @param lr:		learning rate hyperparameter, used for weight update.
+	// @param momentum: Nesterov momentum, used for ensuring faster convergence.
+	// @returns	pair<bool, double>: a pair that contains whether prediction was correct and the loss.
 	std::pair<bool, double> Model::Fit(Tensor3D<double>& input, 
 									   Tensor3D<double>& target,
 									   double lr, double momentum) {
 		// Stores whether prediction was correct and the loss.
-		bool correct;
-		double loss;
+		bool correct = false;
+		double loss = 1000;
 		Tensor3D<double> predicted = Predict(input);
 
 		if (utils::ComparePrediction(predicted, target))
-			++correct;
+			correct = true;
 
 		Tensor3D<double> error = (predicted - target);
 		loss = layers.back()->Loss(target);
@@ -27,13 +39,9 @@ namespace convnet_core {
 			} else {
 				// Handle flattened FC inputs.
 				if (layers[i+1]->GetType() == layer::LayerType::FC) {
-//					std::cout << "Reshape FC grad" << std::endl;
 					Tensor3D<double> reshaped = layers[i+1]->GetGrads().Reshape(layers[i]->GetOutputShape());
 					layers[i]->Backprop(reshaped);
-//					std::cout << "Bacprop after FC" << std::endl;
-				}
-				else {
-//					std::cout << "Other backprop" << std::endl;
+				} else {
 					layers[i]->Backprop(layers[i + 1]->GetGrads());
 				}				
 			}
@@ -45,6 +53,9 @@ namespace convnet_core {
 		return std::pair<bool, double>(correct, loss);
 	}
 
+	// Classifies an image represented as a 3D tensor.
+	// @param input:	input image as a 3D tensor.
+	// @returns:		one-hot encoded prediction.
 	Tensor3D<double> Model::Predict(const Tensor3D<double>& input) {
 		for (int i = 0; i < layers.size(); ++i) {
 			if (i == 0) {
@@ -57,6 +68,8 @@ namespace convnet_core {
 		return layers.back()->GetOutput();
 	}
 
+	// Saves a model to the hard disk.
+	// @param path: path of the model file.
 	void Model::Save(std::string path) {
 		nlohmann::json model_json;
 		for (int i = 0; i < layers.size(); ++i) {
@@ -67,11 +80,14 @@ namespace convnet_core {
 		o << std::setw(4) << model_json;
 	}
 
+	// Loads a model to the hard disk.
+	// @param path: path of the model file.
 	void Model::Load(std::string path) {
 		std::ifstream i(path);
 		nlohmann::json model_json;
 		i >> model_json;
 
+		// Construct layers from the model file.
 		for (auto& layer : model_json) {
 			if (layer["type"] == "pool") {
 				layer::MaxPool* pool = new layer::MaxPool(utils::ReadPoolLayerJSON(layer));
@@ -90,52 +106,28 @@ namespace convnet_core {
 				Add(softmax);
 			}
 		}
-		
 	}
 
 	void Model::Add(layer::Layer* layer) {
 		layers.push_back(layer);
 	}
 
+	// Evaluates an image an returns whether prediction was accurate and with the loss.
+	// @param input:	input image as a 3D tensor.
+	// @param target:	one-hot encoded target variable.
+	// @returns	pair<bool, double>: a pair that contains whether prediction was correct and the loss.
 	std::pair<bool, double> Model::Evaluate(Tensor3D<double>& input, Tensor3D<double>& target) {
 		Tensor3D<double> predicted = Predict(input);
-		bool correct;
+		bool correct = false;
 		double loss;
 
 		if (utils::ComparePrediction(predicted, target))
-			++correct;
+			correct = true;
 
 		loss = layers.back()->Loss(target);
 
 		
 		return std::pair<bool, double>(correct, loss);
 	}
-
-	//void Model::Add(layer::Conv& layer) {
-	//	layer::Layer* l;
-	//	l = &layer;
-	//	layers.push_back(l);
-	//}
-	//
-	//void Model::Add(layer::ReLU& layer) {
-	//	layer::Layer* l;
-	//	l = &layer;
-	//	layers.push_back(l);
-	//}
-	//void Model::Add(layer::MaxPool& layer) {
-	//	layer::Layer* l;
-	//	l = &layer;
-	//	layers.push_back(l);
-	//}
-	//void Model::Add(layer::FC& layer) {
-	//	layer::Layer* l;
-	//	l = &layer;
-	//	layers.push_back(l);
-	//}
-	//void Model::Add(layer::Softmax& layer) {
-	//	layer::Layer* l;
-	//	l = &layer;
-	//	layers.push_back(l);
-	//}
 }
 

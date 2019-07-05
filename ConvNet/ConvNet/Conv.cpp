@@ -1,10 +1,22 @@
+// PROJECT: Convolutional neural network implementation.
+// AUTHOR: Tamás Matuszka
+
 #include "Conv.h"
 
-
 namespace layer {
+	// Default constructor and destructor.
 	Conv::Conv() { }
 	Conv::~Conv() { }
 
+	// Creates a Conv layers invoking the base constructor.
+	// @param height:	input height
+	// @param width:	input width
+	// @param depth:	input depth
+	// @param name:		name of the layer
+	// @param f_count:	number of filters in the layer
+	// @param f_size:	filter size (filter shape is (f_size, f_size, depth)
+	// @param stride:	step size during sliding.
+	// @param paddig:	how many zeros will be added around tensor.
 	Conv::Conv(int height, int width, int depth, std::string name, int f_count,
 		int f_size, int stride, int padding) : Layer(name) {
 		LayerType type = LayerType::Conv;
@@ -27,13 +39,21 @@ namespace layer {
 		InitGrads();
 	}
 
-	// Used for loading parameters from a saved model.
+	// Copy constructor, used for loading parameters from a saved model.
+	// @param other: layer which will be copied.
 	Conv::Conv(const Conv& other) : Layer(other) {
 		weights = other.weights;
 		bias = other.bias;
 		InitGrads();
 	}
 
+	// Creates a Conv layers invoking the base constructor.
+	// @param shape:	input dimensions
+	// @param name:		name of the layer
+	// @param f_count:	number of filters in the layer
+	// @param f_size:	filter size (filter shape is (f_size, f_size, depth)
+	// @param stride:	step size during sliding.
+	// @param paddig:	how many zeros will be added around tensor.
 	Conv::Conv(convnet_core::Triplet shape, std::string name, int f_count, 
 			   int f_size, int stride, int padding) : Layer(shape, name) {
 		filter_count = f_count;
@@ -51,6 +71,13 @@ namespace layer {
 		InitGrads();
 	}
 
+	// Creates a Conv layers invoking the base constructor.
+	// @param prev_act:	tensor from previous layer
+	// @param name:		name of the layer
+	// @param f_count:	number of filters in the layer
+	// @param f_size:	filter size (filter shape is (f_size, f_size, depth)
+	// @param stride:	step size during sliding.
+	// @param paddig:	how many zeros will be added around tensor.
 	Conv::Conv(convnet_core::Tensor3D<double>& prev_activation, std::string name, 
 			   int f_count, int f_size, int stride, int padding)
 		: Layer(prev_activation, name) {
@@ -70,6 +97,8 @@ namespace layer {
 		InitGrads();
 	}
 
+	// Forward pass. Performs convolutions of weights with the input volume.
+	// @param prev_act:	activation map from previous layer
 	void Conv::Forward(const Tensor3D<double>& prev_activation) {
 		input = Tensor3D<double>(prev_activation);
 
@@ -122,6 +151,8 @@ namespace layer {
 		}
 	}
 
+	// Calculates the gradients based on the upstream gradient.
+	// Can be interpreted as a convolution.
 	void Conv::Backprop(Tensor3D<double>& grad_output) {
 		Tensor3D<double> padded = ZeroPad(input);
 		grad_input.InitZeros();
@@ -154,7 +185,6 @@ namespace layer {
 //					std::cout << "h: " << h << ", w: " << w << std::endl;// << ", h_s: " << horiz_start << ", h_e: " << horiz_end << std::endl;
 
 					dotProduct = 0;
-					// Dot product between input-slice and filter along the depth dimension.
 					for (int weight_depth = 0; weight_depth < input.GetShape().depth; ++weight_depth) {
 						w_row = 0;
 						sum_dOut += grad_output(h, w, c);
@@ -183,12 +213,12 @@ namespace layer {
 			}
 			grad_bias[c](0, 0, 0) = sum_dOut;
 		}
+		// Handle zero-padding.
 		grad_input = Tensor3D<double>(Unpad(grad_input_padded));
 
 		for (int c = 0; c < out_shape.depth; ++c) {
 			Tensor3D<double> W = weights[c];
 			Tensor3D<double> b = bias[c];
-//std::cout << "FILTER " << c << std::endl;
 
 			// Calculate gradients w.r.t. weights.
 			// Convolve over padded input with the upstream gradient (dOut).
@@ -226,22 +256,21 @@ namespace layer {
 						}
 						grad_weights[c](h, w, weight_depth) = dotProduct;
 					}
-//					grad_weights[c](h, w, c) = dotProduct;
 				}
 			}
 		}
 	}
 
+	// Adjudsts weights based on the calculated gradients. 
+	// Uses Nesterov Accelerated Gradient method.
+	// @param lr:		learning rate
+	// @param momentum: momentum
+	// Further description of method: http://cs231n.github.io/neural-networks-3/#sgd
 	void Conv::UpdateWeights(double lr, double momentum) {
 		for (int i = 0; i < grad_weights.size(); ++i) {
 			Tensor3D<double> v_prev(velocities[i]);
 			velocities[i] = velocities[i] *momentum - (grad_weights[i] *lr);
 			weights[i] = weights[i] - (v_prev*momentum) + v_prev*(1 + momentum);
-
-			/*velocities[i] = velocities[i]*momentum + grad_weights[i]*lr;
-			weights[i] = weights[i] - velocities[i];
-			*/
-			//weights[i] = weights[i] - (grad_weights[i]*lr);
 		}
 		
 		for (int i = 0; i < grad_bias.size(); ++i) {
@@ -249,6 +278,8 @@ namespace layer {
 		}
 	}
 
+	// Store layer parameters in a JSON node.
+	// returns layer: JSON representation of the layer. 
 	nlohmann::json Conv::Serialize() {
 		nlohmann::json layer;
 		nlohmann::json weights_json;
@@ -280,8 +311,10 @@ namespace layer {
 		return layer;
 	}
 
+	// Not needed.
 	double Conv::Loss(Tensor3D<double>& target) { return 0.0; }
 
+	// Getter methods.
 	std::vector<Tensor3D<double>>& Conv::GetWeights() {
 		return weights;
 	}
@@ -303,6 +336,7 @@ namespace layer {
 		return grad_input;
 	}
 
+	// He initialization.
 	void Conv::InitWeights() {
 		weights = std::vector<Tensor3D<double>>(filter_count);
 		for (int i = 0; i < filter_count; ++i) {
@@ -341,6 +375,9 @@ namespace layer {
 		}
 	}
 
+	// Add zeros around each matrices along depth dimension.
+	// param tensor:	tensor on which padding will be applied
+	// returns padded:	zero-padded tensor
 	Tensor3D<double> Conv::ZeroPad(Tensor3D<double> tensor) {
 		convnet_core::Triplet shape = tensor.GetShape();
 		Tensor3D<double> padded(shape.height + 2 * padding,
@@ -359,6 +396,7 @@ namespace layer {
 		return padded;
 	}
 
+	// Getter methods for deserializing.
 	int Conv::GetFilterCount() {
 		return filter_count;
 	}
@@ -375,6 +413,9 @@ namespace layer {
 		return padding;
 	}
 
+	// Removes zero-padding from a tensor.
+	// param padded: zero padded tensor
+	// return unpadded: unpadded tensor
 	Tensor3D<double> Conv::Unpad(Tensor3D<double> padded) {
 		convnet_core::Triplet input_shape = input.GetShape();
 		convnet_core::Triplet padded_shape = padded.GetShape();

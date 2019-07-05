@@ -89,6 +89,9 @@ namespace utils {
 			target.InitZeros();
 			target(i, 0, 0) = 1;
 			for (int j = 0; j < sample_per_class; ++j) {
+				if (((i*sample_per_class) + j) % 2000 == 0) {
+					std::cout << (((i*sample_per_class) + j) / (double)(sample_per_class*12)) * 100 << "%" << std::endl;
+				}
 				path_dir = "../../../datasets/traffic_signs/train-52x52/";
 				if (j < 10) {
 					path_dir.append((std::to_string(i + 1)))

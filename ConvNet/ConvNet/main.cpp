@@ -115,11 +115,11 @@ int main(int argc, char** argv)
 	//model.Add(softmax);
 
 //	model.Save("models/model-96.json");
-	model.Load("models/model-simplest.json");
+	model.Load("models/model-simpler.json");
 
 	std::cout << "Load training and validation sets..." << std::endl;
 	utils::Dataset trainingSet = utils::GetTrainingSet(4000);
-	utils::Dataset validSet = utils::GetValidationSet(10);
+	utils::Dataset validSet = utils::GetValidationSet(100);
 	Tensor3D<double> input, target;
 	std::pair<bool, double> result;
 
@@ -127,7 +127,9 @@ int main(int argc, char** argv)
 	double cum_loss = 0;
 	double cum_loss_valid = 0;
 	int correct = 0;
-	for (int epoch = 1; epoch <= 2; ++epoch) {
+	int epoch_num = 1;
+	std::string model_name = "cf-";
+	for (int epoch = 1; epoch <= epoch_num; ++epoch) {
 		std::cout << "Epoch " << epoch << std::endl;
 		std::srand(unsigned(std::time(0)));
 		std::random_shuffle(trainingSet.begin(), trainingSet.end());
@@ -151,9 +153,11 @@ int main(int argc, char** argv)
 			cum_loss += result.second;
 		}
 
-//		if (epoch % 2 == 0) {
-			model.Save("models/model-" + std::to_string(epoch) + ".json");
-//		}
+		if (epoch % 1 == 0) {
+			model.Save("models/model-checkpoint-" + std::to_string(epoch) + ".json");
+		}
+		if (epoch == epoch_num)
+			model.Save("models/model-" + model_name + std::to_string(epoch) + ".json");
 
 		std::cout << std::endl;
 		std::cout << "Epoch " << epoch << " is done. " << std::endl;
@@ -194,7 +198,7 @@ int main(int argc, char** argv)
 	//tensor = Tensor3D<double>(img);
 	//convnet_core::PrintTensor(model.Predict(img));
 
-	std::cout << "Loading data..." << std::endl;
+	std::cout << "Loading test data..." << std::endl;
 	utils::Dataset testSet = utils::GetTestSet(500);
 //	Tensor3D<double> input, target,
 	Tensor3D<double> predicted;

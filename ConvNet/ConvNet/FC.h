@@ -1,7 +1,11 @@
+// PROJECT: Convolutional neural network implementation.
+// AUTHOR: Tamás Matuszka
+
 #pragma once
 #include "Layer.h"
 
 namespace layer {
+	// Fully-connected layer.
 	class FC : public Layer
 	{
 	public:
@@ -14,14 +18,19 @@ namespace layer {
 		FC(const FC & other);
 		FC(convnet_core::Tensor3D<double>& prev_activation,
 		   std::string name, int num_hidden);
-
+ 
+		// Forward pass, 
 		void Forward(const Tensor3D<double>& prev_activation) override;
+		// Calculates gradients based on the upstream gradient.
 		void Backprop(Tensor3D<double>& grad_output) override;
+		// Adjudsts weights based on the obtained gradients.
 		void UpdateWeights(double learning_rate, double momentum = 0.9) override;
+		// Used for model saving.
 		nlohmann::json Serialize() override;
+		// Empty.
 		double Loss(Tensor3D<double>& target) override;
 
-		// Only for testing purposes.
+		// Getter methods
 		Tensor3D<double>& GetWeights();
 		Tensor3D<double>& GetBias();
 		Tensor3D<double>& GetGradWeights();

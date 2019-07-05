@@ -18,6 +18,8 @@ namespace convnet_core {
 		int height, width, depth;
 	};
 
+	// Core data structure of the project. Stores the 3D volume of data in 
+	// an unrolled vector. 
 	template<typename T>
 	class Tensor3D
 	{
@@ -37,9 +39,13 @@ namespace convnet_core {
 
 		T& operator()(int row, int col, int channel);
 		T& get(int row, int col, int channel);
+		// Sums a tensor, returns with a scalar.
 		T Sum();
+		// Applies the sign function to a tensor.
 		Tensor3D<T> Sign();
+		// Unrolls a 3D tensor into a (n, 1, 1) dimensional vector.
 		Tensor3D<T> Flatten();
+		// Reshapes a tensor to the given shape.
 		Tensor3D<T> Reshape(Triplet shape);
 
 		Triplet GetShape();
@@ -49,29 +55,35 @@ namespace convnet_core {
 		~Tensor3D();
 
 	private:
+		// std vector stores elements, takes care of memory handling.
 		std::vector<T> data;
 		Triplet shape;
 
+		// Appends an image channel (as a matrix) to the tensor using depth dimension.
 		void AppendChannel(const cv::Mat& mat, int channel);
 		void SetParams(int height, int width, int depth);
 	};
 
+	// Creates a tensor from a given shape.
 	template<typename T>
 	Tensor3D<T>::Tensor3D(Triplet shape) {
 		SetParams(shape.height, shape.width, shape.depth);
 	}
 
+	// Creates a tensor from given dimensions.
 	template<typename T>
 	Tensor3D<T>::Tensor3D(int height, int width, int depth) {
 		SetParams(height, width, depth);
 	}
 
+	// Copy constructor, creates a deep copy.
 	template<typename T>
 	Tensor3D<T>::Tensor3D(const Tensor3D& other) {
 		data = std::vector<T>(other.data);
 		this->shape = other.shape;
 	}
 
+	// Creates a tensor from an OpenCV image.
 	template<typename T>
 	Tensor3D<T>::Tensor3D(const cv::Mat& image) {
 		int depth = image.channels();
@@ -87,7 +99,8 @@ namespace convnet_core {
 			AppendChannel(bgr[i], i);
 		}
 	}
-
+	
+	// Adds two tensors (element-wise).
 	template<typename T>
 	inline Tensor3D<T> Tensor3D<T>::operator+(const Tensor3D<T>& other) {
 		Tensor3D<T> clone(*this);
@@ -97,6 +110,7 @@ namespace convnet_core {
 		return clone;
 	}
 
+	// Subtracts a tensor from this tensor (element-wise).
 	template<typename T>
 	inline Tensor3D<T> Tensor3D<T>::operator-(const Tensor3D<T>& other) {
 		Tensor3D<T> clone(*this);
@@ -106,6 +120,7 @@ namespace convnet_core {
 		return clone;
 	}
 
+	// Multiplies two tensors (element-wise).
 	template<typename T>
 	inline Tensor3D<T> Tensor3D<T>::operator*(const Tensor3D<T>& other) {
 		Tensor3D<T> clone(*this);
@@ -115,6 +130,7 @@ namespace convnet_core {
 		return clone;
 	}
 
+	// Multiplies a tensor with a scalar.
 	template<typename T>
 	inline Tensor3D<T> Tensor3D<T>::operator*(T scalar) {
 		Tensor3D<T> clone(*this);
@@ -124,6 +140,7 @@ namespace convnet_core {
 		return clone;
 	}
 
+	// Divides a tensor with a scalar.
 	template<typename T>
 	inline Tensor3D<T> Tensor3D<T>::operator/(T scalar) {
 		Tensor3D<T> clone(*this);
@@ -133,6 +150,7 @@ namespace convnet_core {
 		return clone;
 	}
 
+	// Adds a scalar to a tensor.
 	template<typename T>
 	inline Tensor3D<T> Tensor3D<T>::operator+(T scalar) {
 		Tensor3D<T> clone(*this);
@@ -142,6 +160,7 @@ namespace convnet_core {
 		return clone;
 	}
 
+	// Assignment operator.
 	template<typename T>
 	inline Tensor3D<T> Tensor3D<T>::operator=(const Tensor3D<T>& other) {
 		data = std::vector<T>(other.data);
@@ -150,11 +169,13 @@ namespace convnet_core {
 		return *this;
 	}
 
+	// Indexing operator for the 3D tensor.
 	template<typename T>
 	inline T & Tensor3D<T>::operator()(int row, int col, int channel) {
 		return this->get(row, col, channel);
 	}
 
+	// Auxiliary function that returns the data element from the unrolled vector.
 	template<typename T>
 	T& Tensor3D<T>::get(int row, int col, int channel) {
 		assert(row >= 0 && col >= 0 && channel >= 0);
@@ -185,6 +206,8 @@ namespace convnet_core {
 		return clone;
 	}
 
+	// Creates a (height*width*depth, 1, 1) dimensional
+	// copy of original tensor.
 	template<typename T>
 	Tensor3D<T> Tensor3D<T>::Flatten() {
 		Tensor3D<T> clone(*this);
@@ -199,6 +222,8 @@ namespace convnet_core {
 		return clone;
 	}
 
+	// Returns an (new_height, new_width, new_depth) dimensional
+	// copy of the original tensor.
 	template<typename T>
 	Tensor3D<T> Tensor3D<T>::Reshape(Triplet new_shape) {
 		Tensor3D<T> clone(*this);
@@ -222,6 +247,8 @@ namespace convnet_core {
 	Tensor3D<T>::~Tensor3D() { }
 
 	// Append the color-channels of an image to the unrolled data array.
+	// @param mat: channel of an image as OpenCV matrix.
+	// @param channel: number of channel.
 	template<typename T>
 	void Tensor3D<T>::AppendChannel(const cv::Mat& mat, int channel) {
 		assert(channel >= 0);
@@ -243,6 +270,7 @@ namespace convnet_core {
 		shape.depth = depth;
 	}
 
+	// Sets all data elements to zero.
 	template<typename T>
 	void Tensor3D<T>::InitZeros() {
 		for (int i = 0; i < shape.height; ++i)
@@ -251,6 +279,8 @@ namespace convnet_core {
 					get(i, j, k) = 0;
 	}
 
+	// Random initialization (used for CNN weights).
+	// He initialization is used to ensure faster convergence.
 	template<typename T>
 	void Tensor3D<T>::InitRandom() {
 		std::random_device rd;
@@ -267,6 +297,7 @@ namespace convnet_core {
 					get(i, j, k) = normalDistribution(generator);
 	}
 
+	// Utils functions.
 	static void PrintTensor(Tensor3D<double>& tensor) {
 		int width = tensor.GetShape().width;
 		int height = tensor.GetShape().height;
