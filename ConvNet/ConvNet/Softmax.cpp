@@ -1,11 +1,19 @@
+// PROJECT: Convolutional neural network implementation.
+// AUTHOR: Tamás Matuszka
+
 #include "Softmax.h"
 #include <math.h>
 
 namespace layer {
-
+	// Default constuctor and destructor.
 	Softmax::Softmax() { }
 	Softmax::~Softmax() { }
 
+	// Creates a Softmax layer invoking the base constructor.
+	// @param name:		name of the layer
+	// @param height:	input height
+	// @param width:	input width
+	// @param depth:	input depth
 	Softmax::Softmax(std::string name, int height, int width, int depth)
 				: Layer(name) {
 		LayerType type = LayerType::Softmax;
@@ -15,16 +23,23 @@ namespace layer {
 		output = Tensor3D<double>(height, width, depth);
 		grad_input = Tensor3D<double>(height, width, depth);
 	}
-
+	
+	// Copy constructor, used for loading parameters from a saved model.
+	// param other: layer which will be copied.
 	Softmax::Softmax(const Softmax& other) : Layer(other) { }
 
+	// Creates a ReLU layer invoking the base constructor.
+	// @param prev_act:	tensor from previous layer
+	// @param name:		name of the layer
 	Softmax::Softmax(convnet_core::Tensor3D<double>& prev_activation,
-		std::string name) : Layer(prev_activation, name) {
+					 std::string name) : Layer(prev_activation, name) {
 		convnet_core::Triplet shape = prev_activation.GetShape();
 		output = Tensor3D<double>(shape.height, shape.width, shape.depth);
 		grad_input = Tensor3D<double>(shape.height, shape.width, shape.depth);
 	}
 
+	// Applies element-wise softmax function on previous activation map.
+	// @param prev_act: activation map from previous layer
 	void Softmax::Forward(const Tensor3D<double>& prev_activation) {
 		/*assert(prev_activation.GetShape().width == 1 &&
 			prev_activation.GetShape().depth == 1);*/
@@ -43,7 +58,8 @@ namespace layer {
 		output = output / sum_exp;
 	}
 
-	// Cross-entropy loss function.
+	// Categorical Cross-entropy loss function.
+	// @param target: one-hot encoded target tensor.
 	double Softmax::Loss(Tensor3D<double>& target) {
 		assert(target.GetShape().height == output.GetShape().height);
 
@@ -54,11 +70,17 @@ namespace layer {
 		
 	}
 
+	// Calculates the gradients from the upstream gradient.
+	// param grad_output: upstream gradient.
 	void Softmax::Backprop(Tensor3D<double>& grad_out) {
 		grad_input = grad_out;
 	}
 
+	// Not implemented, no trainable parameters.
 	void Softmax::UpdateWeights(double learning_rate, double momentum) { }
+
+	// Stores layer parameters in a JSON node.
+	// returns layer: JSON representation of the layer. 
 	nlohmann::json Softmax::Serialize() {
 		nlohmann::json layer;
 

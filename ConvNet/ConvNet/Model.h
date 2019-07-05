@@ -39,6 +39,10 @@ namespace convnet_core {
 		// Container of layers, layers are dynamically typed in order to 
 		// apply specialized methods.
 		std::vector<layer::Layer*> layers;
+
+		// Maps int numbers to the alphabet.
+		// Required for serialization.
+		char IntToAlphabet(int n);
 	};
 }
 

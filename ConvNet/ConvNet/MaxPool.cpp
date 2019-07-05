@@ -1,10 +1,21 @@
+// PROJECT: Convolutional neural network implementation.
+// AUTHOR: Tamás Matuszka
+
 #include "MaxPool.h"
 #include <limits>
 
 namespace layer {
+	// Default constructor and destructor.
 	MaxPool::MaxPool() { }
 	MaxPool::~MaxPool() { }
 
+	// Creates a MaxPool layer invoking the base constructor.
+	// @param name:			name of the layer
+	// @param height:		input height
+	// @param width:		input width
+	// @param depth:		input depth
+	// @param stride:		step size during sliding
+	// @param pool_size:	pool size
 	MaxPool::MaxPool(std::string name, int height, int width, int depth,
 					 int stride, int pool_size) : Layer(name) {
 		LayerType type = LayerType::Pool;
@@ -18,6 +29,12 @@ namespace layer {
 		this->stride = stride;
 		this->pool_size = pool_size;
 	}
+
+	// Creates a MaxPool layer invoking the base constructor.
+	// @param shape:		input shape
+	// @param name:			name of the layer
+	// @param stride:		step size during sliding
+	// @param pool_size:	pool size
 	MaxPool::MaxPool(convnet_core::Triplet shape, std::string name,
 					 int stride, int pool_size) : Layer(shape, name) {
 		int out_height = (shape.height - pool_size) / stride + 1;
@@ -30,6 +47,11 @@ namespace layer {
 		this->pool_size = pool_size;
 	}
 
+	// Creates a MaxPool layer invoking the base constructor.
+	// @param prev_act:		tensor from previous layer
+	// @param name:			name of the layer
+	// @param stride:		step size during sliding
+	// @param pool_size:	pool size
 	MaxPool::MaxPool(Tensor3D<double>& prev_activation, std::string name,
 					 int stride, int pool_size) : Layer(prev_activation, name) {
 		convnet_core::Triplet shape = prev_activation.GetShape();
@@ -43,11 +65,16 @@ namespace layer {
 		this->pool_size = pool_size;
 	}
 
+	// Copy constructor, used for loading parameters from a saved model.
+	// param other: layer which will be copied.
 	MaxPool::MaxPool(const MaxPool& other) : Layer(other) {
 		stride = other.stride;
 		pool_size = other.pool_size;
 	}
 
+	// Spatially reduces input volume. Slides a p_size*p_size window on
+	// each depth slice. Then, stores the maximum element of the window.
+	// @param prev_act:	activation map from previous layer
 	void MaxPool::Forward(const Tensor3D<double>& prev_activation) {
 		input = Tensor3D<double>(prev_activation);
 		max_indexes.clear();
@@ -89,14 +116,14 @@ namespace layer {
 		}
 	}
 
+	// Calculates the gradients from the upstream gradient.
+	// Stores the max-indexes of each window and multiplies it with 
+	// corresponding upstream gradient.
+	// param grad_output: upstream gradient.
 	void MaxPool::Backprop(Tensor3D<double>& grad_out) {
 		grad_input.InitZeros();
 		convnet_core::Triplet grad_shape = GetOutputShape();
 		assert(grad_shape.height * grad_shape.width * grad_shape.depth == max_indexes.size());
-
-		//for (auto ind : max_indexes) {
-		//	std::cout << ind.height << " " << ind.width << " " << ind.depth << std::endl;
-		//}
 
 		int count = 0;
 		for (int r = 0; r < grad_shape.height; ++r) {
@@ -111,8 +138,11 @@ namespace layer {
 		}
 	}
 
+	// Not implemented, no trainable parameters.
 	void MaxPool::UpdateWeights(double lr, double momentum) { }
 
+	// Store layer parameters in a JSON node.
+	// returns layer: JSON representation of the layer. 
 	nlohmann::json MaxPool::Serialize() {
 		nlohmann::json layer;
 
@@ -127,8 +157,10 @@ namespace layer {
 		return layer;
 	}
 
+	// Not implemented.
 	double MaxPool::Loss(Tensor3D<double>& target) { 	return 0.0; }
 
+	// Getters for serialization.
 	int MaxPool::GetPoolSize() {
 		return pool_size;
 	}

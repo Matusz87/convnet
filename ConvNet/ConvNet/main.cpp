@@ -115,20 +115,20 @@ int main(int argc, char** argv)
 	//model.Add(softmax);
 
 //	model.Save("models/model-96.json");
-	model.Load("models/model-simpler.json");
+	model.Load("models/model-ccff.json");
 
 	std::cout << "Load training and validation sets..." << std::endl;
 	utils::Dataset trainingSet = utils::GetTrainingSet(4000);
-	utils::Dataset validSet = utils::GetValidationSet(100);
+	utils::Dataset validSet = utils::GetValidationSet(500);
 	Tensor3D<double> input, target;
 	std::pair<bool, double> result;
 
-	double lr = 0.0001;
+	double lr = 0.00001;
 	double cum_loss = 0;
 	double cum_loss_valid = 0;
 	int correct = 0;
-	int epoch_num = 1;
-	std::string model_name = "cf-";
+	int epoch_num = 3;
+	std::string model_name = "ccff-";
 	for (int epoch = 1; epoch <= epoch_num; ++epoch) {
 		std::cout << "Epoch " << epoch << std::endl;
 		std::srand(unsigned(std::time(0)));

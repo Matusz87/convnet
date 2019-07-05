@@ -8,7 +8,7 @@ namespace layer {
 	Conv::Conv() { }
 	Conv::~Conv() { }
 
-	// Creates a Conv layers invoking the base constructor.
+	// Creates a Conv layer invoking the base constructor.
 	// @param height:	input height
 	// @param width:	input width
 	// @param depth:	input depth
@@ -153,6 +153,7 @@ namespace layer {
 
 	// Calculates the gradients based on the upstream gradient.
 	// Can be interpreted as a convolution.
+	// param grad_output: upstream gradient.
 	void Conv::Backprop(Tensor3D<double>& grad_output) {
 		Tensor3D<double> padded = ZeroPad(input);
 		grad_input.InitZeros();

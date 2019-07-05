@@ -73,7 +73,8 @@ namespace convnet_core {
 	void Model::Save(std::string path) {
 		nlohmann::json model_json;
 		for (int i = 0; i < layers.size(); ++i) {
-			model_json["layer_"+std::to_string(i)] = layers[i]->Serialize();
+			char c = IntToAlphabet(i);
+			model_json["layer_"+c] = layers[i]->Serialize();
 		}
 
 		std::ofstream o(path);
@@ -128,6 +129,15 @@ namespace convnet_core {
 
 		
 		return std::pair<bool, double>(correct, loss);
+	}
+
+	// Maps int numbers to the alphabet.
+	// Required for serialization.
+	// param n: number to map
+	char Model::IntToAlphabet(int n) {
+		assert(n >= 1 && n <= 26);
+
+		return "abcdefghijklmnopqrstuvwxyz"[n - 1];
 	}
 }
 

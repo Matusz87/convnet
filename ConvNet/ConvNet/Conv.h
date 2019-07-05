@@ -27,7 +27,7 @@ namespace layer {
 		void UpdateWeights(double learning_rate, double momentum = 0.9) override;
 		// Used for model saving.
 		nlohmann::json Serialize() override;
-		// Empty.
+		// Not implemented.
 		double Loss(Tensor3D<double>& target) override;
 
 		// Getter methods.
@@ -37,7 +37,7 @@ namespace layer {
 		std::vector<Tensor3D<double>>& GetGradBias();
 		Tensor3D<double> GetGradInput();
 		
-		// Getters for serializing.
+		// Getters for serialization.
 		int GetFilterCount();
 		int GetFilterSize();
 		int GetStride();
@@ -48,7 +48,7 @@ namespace layer {
 		int filter_count;
 		// Number of filter size. Filters must be squares.
 		int filter_size;
-		// "Stepsize" of filter when we slide the filter.
+		// "Step size" of filter when we slide the filter.
 		int stride;
 		// Number of zeros around the border.
 		int padding;
