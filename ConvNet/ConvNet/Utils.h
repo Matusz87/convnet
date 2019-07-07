@@ -1,3 +1,6 @@
+// PROJECT: Convolutional neural network implementation.
+// AUTHOR: Tamás Matuszka
+
 #pragma once
 #include <iostream>
 #include <fstream>
@@ -15,7 +18,9 @@
 #include <opencv2/imgcodecs.hpp>
 #include <nlohmann/json.hpp>
 
+// Util functions.
 namespace utils {
+	// A pair that stores images and corresponding labels.
 	typedef std::vector<std::pair<Tensor3D<double>, Tensor3D<double>>> Dataset;
 
 	static void PrintShape(convnet_core::Triplet& shape) {
@@ -78,10 +83,10 @@ namespace utils {
 		return tensor;
 	}
 
-	static Dataset GetTrainingSet(int sample_per_class) {
+	static Dataset GetTrainingSet(std::string base_path_dir, int sample_per_class) {
 		Dataset dataset;
 
-		std::string path_dir = "../../../datasets/traffic_signs/train-52x52/";
+		std::string path_dir = base_path_dir;
 		Tensor3D<double> X, target;
 
 		for (int i = 0; i < 12; ++i) {
@@ -92,7 +97,7 @@ namespace utils {
 				if (((i*sample_per_class) + j) % 2000 == 0) {
 					std::cout << (((i*sample_per_class) + j) / (double)(sample_per_class*12)) * 100 << "%" << std::endl;
 				}
-				path_dir = "../../../datasets/traffic_signs/train-52x52/";
+				path_dir = base_path_dir;
 				if (j < 10) {
 					path_dir.append((std::to_string(i + 1)))
 						.append("/").append(std::to_string((i + 1)))
@@ -124,10 +129,10 @@ namespace utils {
 		return dataset;
 	}
 
-	static Dataset GetValidationSet(int sample_per_class) {
+	static Dataset GetValidationSet(std::string base_path_dir, int sample_per_class) {
 		Dataset dataset;
 
-		std::string path_dir = "../../../datasets/traffic_signs/train-52x52/";
+		std::string path_dir = base_path_dir;
 		Tensor3D<double> X, target;
 
 		for (int i = 0; i < 12; ++i) {
@@ -135,7 +140,7 @@ namespace utils {
 			target.InitZeros();
 			target(i, 0, 0) = 1;
 			for (int j = 0; j < sample_per_class; ++j) {
-				path_dir = "../../../datasets/traffic_signs/train-52x52/";
+				path_dir = base_path_dir;
 				if (j < 10) {
 					path_dir.append((std::to_string(i + 1)))
 						.append("/").append(std::to_string((i + 1)))
@@ -163,10 +168,10 @@ namespace utils {
 		return dataset;
 	}
 
-	static Dataset GetTestSet(int sample_per_class) {
+	static Dataset GetTestSet(std::string base_path_dir, int sample_per_class) {
 		Dataset dataset;
 
-		std::string path_dir = "../../../datasets/traffic_signs/train-52x52/";
+		std::string path_dir = base_path_dir;
 		Tensor3D<double> X, target;
 
 		for (int i = 0; i < 12; ++i) {
@@ -174,7 +179,7 @@ namespace utils {
 			target.InitZeros();
 			target(i, 0, 0) = 1;
 			for (int j = 0; j < sample_per_class; ++j) {
-				path_dir = "../../../datasets/traffic_signs/train-52x52/";
+				path_dir = base_path_dir;
 				if (j < 10) {
 					path_dir.append((std::to_string(i + 1)))
 						.append("/").append(std::to_string((i + 1)))
@@ -193,7 +198,6 @@ namespace utils {
 						.append("_4").append(std::to_string(j + 500))
 						.append(".bmp");
 				}
-
 				X = utils::CreateTensorFromImage(path_dir);
 				dataset.push_back(std::pair<Tensor3D<double>, Tensor3D<double>>(X, target));
 			}
@@ -394,12 +398,7 @@ namespace utils {
 			layer["depth"], layer["name"],
 			layer["f_count"], layer["f_size"],
 			layer["stride"], layer["padding"]);
-
-		/*if (layer.count("bias") == 0 ||
-			layer.count("weights") == 0) {
-			return conv;
-		}*/
-				
+		
 		int b_ind = 0;
 		for (auto& element : layer["bias"]) {
 			conv.GetBias()[b_ind](0, 0, 0) = element;

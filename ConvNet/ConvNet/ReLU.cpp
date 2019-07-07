@@ -57,7 +57,9 @@ namespace layer {
 		for (int k = 0; k < depth; ++k) {
 			for (int i = 0; i < height; ++i) {
 				for (int j = 0; j < width; ++j) {
-					output(i, j, k) = input(i, j, k) > 0 ? input(i, j, k) : 0;
+					//output(i, j, k) = input(i, j, k) > 0 ? input(i, j, k) : 0;
+					output(i, j, k) = input(i, j, k) < 0 ? (0.1*input(i, j, k)) : (1 * input(i, j, k));
+
 				}
 			}
 		}
@@ -74,7 +76,8 @@ namespace layer {
 		for (int k = 0; k < depth; ++k) {
 			for (int i = 0; i < height; ++i) {
 				for (int j = 0; j < width; ++j) {
-					grad_input(i, j, k) = input(i, j, k) < 0 ? 0 : (1 * grad_out(i, j, k));
+					//grad_input(i, j, k) = input(i, j, k) < 0 ? 0 : (1 * grad_out(i, j, k));
+					grad_input(i, j, k) = input(i, j, k) < 0 ? (0.1*grad_out(i, j, k)) : (1 * grad_out(i, j, k));
 				}
 			}
 		}

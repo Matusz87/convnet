@@ -42,7 +42,7 @@ namespace convnet_core {
 
 		// Maps int numbers to the alphabet.
 		// Required for serialization.
-		char IntToAlphabet(int n);
+		std::string IntToAlphabet(int n);
 	};
 }
 

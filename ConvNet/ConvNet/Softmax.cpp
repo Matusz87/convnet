@@ -65,7 +65,7 @@ namespace layer {
 
 		for (int i = 0; i < output.GetShape().height; ++i) {
 			if (target(i, 0, 0) == 1)
-				return -log(output(i, 0, 0)) * -1;
+				return -log(output(i, 0, 0));
 		}
 		
 	}

@@ -21,114 +21,63 @@
 #include <iostream>
 #include <string>
 
+std::string dataset_path = "../../../datasets/traffic_signs/train-52x52/";
 
-int main(int argc, char** argv)
-{
-	int i;
-
-	TestFC testfc;
-	/*fc.TestConstructor();
-	fc.TestForward();
-	fc.TestBackprop();*/
-
-	TestNet testNet;
-	/*testNet.TestReluPool();*/
-	//testNet.TrainConvLayer();
-	//testNet.TrainFC2();
-	//testNet.TrainMNISTdigit();
-	//testNet.TrainSignFC();
-	//testNet.TrainSign();
-//	testNet.TrainSignCE2();
-	//testNet.Evaluate();
-
-	TestTensor t;
-//	t.TestTensorFromMatSuccess();
-	/*t.TestInitZeros();
-	t.TestInitRandom();*/
-
-	TestConv testConv;
-	//testConv.TestUnpadding();
-	/*testConv.TestConstructor();
-	testConv.TestPadding();
-	testConv.TestForward();
-	testConv.TestForward2();
-	*/
-	//testConv.TestForward();
-	//testConv.TestForward3();
-	//testConv.TestBackprop();
-	//testConv.TestBackprop2();
-	//testConv.TestBackpropPadded();
-	/*testConv.TestForward3();	
-	testConv.TestForwardDeep();
-	testConv.TestForwardPadded();
-*/
-	TestMaxPool testMaxPool;
-	//testMaxPool.TestConstructor();
-	//testMaxPool.TestConstructorWithTensor();
-	//testMaxPool.TestConstructorWithMat();
-	/*testMaxPool.TestForward();
-	testMaxPool.TestForwardWithMat();
-	testMaxPool.TestBackprop();
-*/
-/*	TestReLU testReLU;
-	testReLU.TestConstructor();
-	testReLU.TestConstructorWithTensor();
-	testReLU.TestConstructorWithMat();
-	testReLU.TestForward();
-*/
-
-	TestSoftmax testSoftmax;
-	//testSoftmax.TestForward();
-
-	// Create layers.
-	//layer::MaxPool pool_0("pool_0", 52, 52, 3, 2, 2);
-	//pool_0 = utils::ReadPoolLayer("models/pool_0.json");
-	//layer::Conv conv(26, 26, 3, "conv", 12, 3, 1, 0);
-	//conv = utils::ReadConvLayer("models/1200/conv-96.json");
-	//layer::ReLU relu("relu", 24, 24, 12);
-	//relu = utils::ReadReLU("models/relu.json");
-	//layer::MaxPool pool("pool", 24, 24, 12, 2, 2);
-	//pool = utils::ReadPoolLayer("models/pool.json");
-	//layer::Conv conv_2(12, 12, 12, "conv_2", 8, 3, 1, 0);
-	//conv_2 = utils::ReadConvLayer("models/1200/conv_2-96.json");
-	//layer::ReLU relu_1("relu_1", 10, 10, 8);
-	//relu_1 = utils::ReadReLU("models/relu_1.json");
-	//layer::FC fc("fc", 10 * 10 * 8, 64);
-	//fc = utils::ReadFCLayer("models/1200/fc-96.json");
-	//layer::ReLU relu_2("relu_2", 64, 1, 1);
-	//relu_2 = utils::ReadReLU("models/relu_2.json");
-	//layer::FC fc_2("fc_2", 64, 12);
-	//fc_2 = utils::ReadFCLayer("models/1200/fc_2-96.json");
-	//layer::Softmax softmax("softmax", 12, 1, 1);
-	//softmax = utils::ReadSoftmax("models/softmax.json");
-
+void Classify(std::string model_path, std::string image_path) {
 	convnet_core::Model model;
-	//model.Add(pool_0);
-	//model.Add(conv);
-	//model.Add(relu);
-	//model.Add(pool);
-	//model.Add(conv_2);
-	//model.Add(relu_1);
-	//model.Add(fc);
-	//model.Add(relu_2);
-	//model.Add(fc_2);
-	//model.Add(softmax);
+	model.Load(model_path);
 
-//	model.Save("models/model-96.json");
-	model.Load("models/model-ccff.json");
+	cv::Mat img;
+	img = cv::imread(image_path, cv::IMREAD_COLOR);
+	cv::imshow(image_path, img);
+	cv::waitKey(1);
+
+	std::cout << "Classification result" << std::endl;
+	convnet_core::PrintTensor(model.Predict(img));
+}
+
+void Evaluate(std::string model_path, std::string dataset_path) {
+	convnet_core::Model model;
+	model.Load(model_path);
+
+	std::cout << "Loading test data..." << std::endl;
+	utils::Dataset testSet = utils::GetTestSet(dataset_path, 500);
+	Tensor3D<double> input, target, predicted;
+	int correct = 0;
+	
+	for (int m = 0; m < testSet.size(); ++m) {
+		if (m % 500 == 0) {
+			std::cout << "... (" << m << "/" << testSet.size() << ")";
+			std::cout << "Test set accuracy: " << 100* correct / (double)testSet.size() << "%" << std::endl;
+		}
+
+		input = testSet[m].first;
+		target = testSet[m].second;
+
+		predicted = model.Predict(input);
+
+		if (utils::ComparePrediction(predicted, target))
+			++correct;
+	}
+
+	std::cout << std::endl;
+	std::cout << "Final Test set accuracy: " << 100 * correct / (double)testSet.size() << "%" << std::endl;
+}
+
+void Train(std::string model_path, std::string dataset_path, double lr, 
+		   int epoch_num, int train_num, int valid_num, std::string model_name="cnn") {
+	convnet_core::Model model;
+	model.Load(model_path);
 
 	std::cout << "Load training and validation sets..." << std::endl;
-	utils::Dataset trainingSet = utils::GetTrainingSet(4000);
-	utils::Dataset validSet = utils::GetValidationSet(500);
+	utils::Dataset trainingSet = utils::GetTrainingSet(dataset_path, train_num);
+	utils::Dataset validSet = utils::GetValidationSet(dataset_path, valid_num);
 	Tensor3D<double> input, target;
 	std::pair<bool, double> result;
 
-	double lr = 0.00001;
 	double cum_loss = 0;
 	double cum_loss_valid = 0;
 	int correct = 0;
-	int epoch_num = 3;
-	std::string model_name = "ccff-";
 	for (int epoch = 1; epoch <= epoch_num; ++epoch) {
 		std::cout << "Epoch " << epoch << std::endl;
 		std::srand(unsigned(std::time(0)));
@@ -161,9 +110,9 @@ int main(int argc, char** argv)
 
 		std::cout << std::endl;
 		std::cout << "Epoch " << epoch << " is done. " << std::endl;
-		std::cout << "Trainin loss: " << cum_loss / (double)trainingSet.size() << std::endl;
-		std::cout << "Training accuracy: " << correct / (double)trainingSet.size() << std::endl;
-		
+		std::cout << "Training loss: " << cum_loss / (double)trainingSet.size() << std::endl;
+		std::cout << "Training accuracy: " << 100 * correct / (double)trainingSet.size() << "%" << std::endl;
+
 		// Calculate validation loss
 		correct = 0;
 		for (int m = 0; m < validSet.size(); ++m) {
@@ -179,50 +128,26 @@ int main(int argc, char** argv)
 		}
 
 		std::cout << "Validation loss: " << cum_loss_valid / (double)validSet.size() << std::endl;
-		std::cout << "Validation accuracy: " << correct / (double)validSet.size() << std::endl << std::endl;
+		std::cout << "Validation accuracy: " << 100 * correct / (double)validSet.size() << "%" << std::endl << std::endl;
 	}
-	
-	//cv::Mat img;
-	//std::string imageName("D:/AImotive/dowloaded/stop.jpg");
-	//img = cv::imread(imageName.c_str(), cv::IMREAD_COLOR);
-	//cv::imshow("kep", img);
-	//cv::waitKey(1);
+}
 
-	//std::cout << "Stop sign" << std::endl;
-	//convnet_core::Tensor3D<double> tensor(img);
-	//convnet_core::PrintTensor(model.Predict(img));
-
-	//std::cout << "Cross sign" << std::endl;
-	//imageName = "D:/AImotive/dowloaded/cross.jpg";
-	//img = cv::imread(imageName.c_str(), cv::IMREAD_COLOR);
-	//tensor = Tensor3D<double>(img);
-	//convnet_core::PrintTensor(model.Predict(img));
-
-	std::cout << "Loading test data..." << std::endl;
-	utils::Dataset testSet = utils::GetTestSet(500);
-//	Tensor3D<double> input, target,
-	Tensor3D<double> predicted;
-	correct = 0;
-	std::vector<int> class_accuracy;
-	for (int m = 0; m < testSet.size(); ++m) {
-		if (m % 100 == 0) {
-			std::cout << "... (" << m << "/" << testSet.size() << ")";
-			std::cout << "Test set accuracy: " << correct / (double)testSet.size() << std::endl;
-		}
-
-		input = testSet[m].first;
-		target = testSet[m].second;
-
-		predicted = model.Predict(input);
-
-		if (utils::ComparePrediction(predicted, target))
-			++correct;
+int main(int argc, char** argv) {
+	if (argc == 3) {
+		Evaluate(argv[1], argv[2]);
+	} else if (argc == 4) {
+		Classify(argv[2], argv[3]);
 	}
-
-	std::cout << std::endl;
-	std::cout << "Final Test set accuracy: " << correct / (double)testSet.size() << std::endl;
-
-	std::cin >> i;
+	else if (argc == 8) {
+		Train(argv[1], argv[2], atof(argv[3]), atoi(argv[4]), 
+			  atoi(argv[5]), atoi(argv[6]), argv[7]);
+	} else {
+		std::cout << "Usage:" << std::endl;
+		std::cout << "Classifiy one image: ConvNet.exe -c model_path image_path" << std::endl;
+		std::cout << "Evaluate model on test set: ConvNet.exe model_path dataset_path" << std::endl;
+		std::cout << "Train model: ConvNet.exe model_path dataset_path learning_rate "
+			<< "epochs train_set_size valid_set_size model_name" << std::endl;
+	}
 
 	return 0;
 }

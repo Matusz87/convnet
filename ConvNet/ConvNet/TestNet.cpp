@@ -428,6 +428,7 @@ bool TestNet::TrainSignFC() {
 bool TestNet::TrainSignCE() {
 	std::cout << "TestNet::TrainSignCE" << std::endl;
 	std::vector<Tensor3D<double>> X;
+	std::string dataset_path = "../../../datasets/traffic_signs/train-52x52/";
 	
 	Tensor3D<double> input = utils::CreateTensorFromImage("../../../datasets/traffic_signs/train-52x52/1/1_0000.bmp");
 	X.push_back(input);
@@ -450,7 +451,7 @@ bool TestNet::TrainSignCE() {
 	layer::Softmax softmax("softmax", 6, 1, 1);
 
 	Tensor3D<double> dW, db, target;
-	utils::Dataset trainingSet = utils::GetTrainingSet(50);
+	utils::Dataset trainingSet = utils::GetTrainingSet(dataset_path, 50);
 
 	double lr = 0.003;
 	double cum_loss = 0;
@@ -527,6 +528,8 @@ bool TestNet::TrainSignCE() {
 
 bool TestNet::TrainSignCE2() {
 	std::cout << "TestNet::TrainSignCE2x2" << std::endl;
+	std::string dataset_path = "../../../datasets/traffic_signs/train-52x52/";
+
 	std::vector<Tensor3D<double>> X;
 
 	Tensor3D<double> input = utils::CreateTensorFromImage("../../../datasets/traffic_signs/train-52x52/1/1_0000.bmp");
@@ -567,8 +570,8 @@ bool TestNet::TrainSignCE2() {
 	softmax = utils::ReadSoftmax("models/softmax.json");
 
 	Tensor3D<double> dW, db, target;
-	utils::Dataset trainingSet = utils::GetTrainingSet(1000);
-	utils::Dataset validSet = utils::GetValidationSet(100);
+	utils::Dataset trainingSet = utils::GetTrainingSet(dataset_path, 1000);
+	utils::Dataset validSet = utils::GetValidationSet(dataset_path, 100);
 	
 	double lr = 0.0001;
 	double cum_loss = 0;
@@ -680,7 +683,8 @@ bool TestNet::TrainSignCE2() {
 }
 
 bool TestNet::Evaluate() {
-	utils::Dataset testSet = utils::GetTestSet(1);
+	std::string dataset_path = "../../../datasets/traffic_signs/train-52x52/";
+	utils::Dataset testSet = utils::GetTestSet(dataset_path, 1);
 
 	// Create layers.
 	layer::MaxPool pool_0("pool_0", 52, 52, 3, 2, 2);

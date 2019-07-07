@@ -116,9 +116,10 @@ namespace tests {
 
 		//	model.Save("models/model-96.json");
 		model.Load("models/model.json");
+		std::string dataset_path = "../../../datasets/traffic_signs/train-52x52/";
 
-		utils::Dataset trainingSet = utils::GetTrainingSet(100);
-		utils::Dataset validSet = utils::GetValidationSet(10);
+		utils::Dataset trainingSet = utils::GetTrainingSet(dataset_path, 100);
+		utils::Dataset validSet = utils::GetValidationSet(dataset_path, 10);
 		Tensor3D<double> input, target;
 		std::pair<bool, double> result;
 
@@ -194,7 +195,7 @@ namespace tests {
 		//convnet_core::PrintTensor(model.Predict(img));
 
 		std::cout << "Loading data..." << std::endl;
-		utils::Dataset testSet = utils::GetTestSet(500);
+		utils::Dataset testSet = utils::GetTestSet(dataset_path, 500);
 		//	Tensor3D<double> input, target,
 		Tensor3D<double> predicted;
 		correct = 0;
